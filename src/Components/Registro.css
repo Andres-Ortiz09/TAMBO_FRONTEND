@@ -15,7 +15,7 @@ html, body, #root {
 
 .left {
   flex: 1;
-  background-image: url('https://img.freepik.com/free-photo/purple-delivery-car-delivery-truck-transport-shipping-icon-online-shopping-concept-3d-illustration_56104-2110.jpg?t=st=1745970285~exp=1745973885~hmac=33b8965d0e681c6e202de18fb93d05ba70bbed5116830d796b112e4665240c52&w=826');
+  background-image: url('../assets/img/carritotambo.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
