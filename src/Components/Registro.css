@@ -38,6 +38,21 @@ html, body, #root {
 .form-logo {
   width: 120px;
   margin-bottom: 20px;
+  animation: moverLogo 1.5s ease-in-out 1;
+}
+
+/* Animación corta al logo */
+
+@keyframes moverLogo {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-15px); 
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 
 /* Título Registro */
