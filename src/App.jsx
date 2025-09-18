@@ -1,20 +1,5 @@
-<<<<<<< HEAD
-import { useState } from 'react'
-import './App.css'
-
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-      <p>
-        Proyecto Tiendas Tambo
-      </p>
-  )
-}
-
-export default App
-=======
 import React, { useState } from 'react';
+import './App.css';
 import Sidebar from './Components/Sidebar';
 import UsuarioAdmin from './Components/UsuarioAdmin';
 import ProductosAdmin from './Components/ProductosAdmin';
@@ -58,4 +43,4 @@ const App = () => {
 };
 
 export default App;
->>>>>>> feature-Crear_VistaPrincipal_Administrador
+
