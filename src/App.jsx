@@ -1,14 +1,15 @@
-import { useState } from 'react'
-import './App.css'
+import React from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import Inicio from "./components/Inicio";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-      <p>
-        Proyecto Tiendas Tambo
-      </p>
-  )
+    <div className="App">
+      <Inicio />
+    </div>
+  );
 }
 
-export default App
+export default App;
+
+
