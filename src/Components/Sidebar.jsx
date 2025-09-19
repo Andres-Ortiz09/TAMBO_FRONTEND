@@ -1,9 +1,15 @@
 import React from 'react';
 import { FaHome, FaUsers, FaBoxOpen, FaShoppingCart, FaExclamationTriangle, FaSignOutAlt } from 'react-icons/fa';
 import logo from '../assets/img/logo-tambo2.png';
+import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 
 const Sidebar = ({ setVista, vista }) => {
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.removeItem('registroUsuario');
+    navigate('/');
+  };
   return (
     <nav className="sidebar">
       <a href="/" className="sidebar-logo-link">
@@ -16,10 +22,10 @@ const Sidebar = ({ setVista, vista }) => {
         <li>
           <a
             href="#"
-            className={`nav-link ${vista === 'inicio' ? 'active' : ''}`}
-            onClick={() => setVista('inicio')}
+            className={`nav-link ${vista === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setVista('dashboard')}
           >
-            <FaHome className="me-2" />Inicio
+            <FaHome className="me-2" />Dashboard
           </a>
         </li>
         <li>
@@ -63,7 +69,7 @@ const Sidebar = ({ setVista, vista }) => {
       <hr />
 
       <div className="mt-auto">
-        <button className="btn btn-outline-danger w-100">
+        <button className="btn btn-outline-danger w-100" onClick={handleLogout}>
           <FaSignOutAlt className="me-2" />Cerrar sesión
         </button>
       </div>
