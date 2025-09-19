@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { FaExclamationTriangle, FaEdit, FaTrash } from 'react-icons/fa';
 import './ReclamosAdmin.css';
 
-const ReclamosAdmin = () => {
-  const [reclamos, setReclamos] = useState([]);
-  const [form, setForm] = useState({ cliente: '', detalle: '' });
-  const [editingId, setEditingId] = useState(null);
+const estados = ['Pendiente', 'Resuelto'];
 
-  // Leer reclamos al montar
+const ReclamosAdmin = () => {
+  const [reclamos, setReclamos] = useState(() => {
+    return JSON.parse(localStorage.getItem('reclamosTambo')) || [];
+  });
+  const [form, setForm] = useState({ cliente: '', detalle: '', estado: 'Pendiente' });
+  const [editingId, setEditingId] = useState(null);
+  const [busqueda, setBusqueda] = useState('');
+  const [mensaje, setMensaje] = useState('');
+
   useEffect(() => {
-    const guardados = JSON.parse(localStorage.getItem('reclamosTambo')) || [];
-    setReclamos(guardados);
-  }, []);
+    localStorage.setItem('reclamosTambo', JSON.stringify(reclamos));
+  }, [reclamos]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -19,19 +22,20 @@ const ReclamosAdmin = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!form.cliente.trim() || !form.detalle.trim()) {
+      setMensaje('Completa todos los campos.');
+      return;
+    }
     if (editingId !== null) {
-      const nuevosReclamos = reclamos.map((r, idx) =>
-        idx === editingId ? form : r
-      );
-      setReclamos(nuevosReclamos);
-      localStorage.setItem('reclamosTambo', JSON.stringify(nuevosReclamos));
+      setReclamos(reclamos.map((r, idx) => (idx === editingId ? form : r)));
+      setMensaje('Reclamo actualizado correctamente.');
       setEditingId(null);
     } else {
-      const nuevosReclamos = [...reclamos, form];
-      setReclamos(nuevosReclamos);
-      localStorage.setItem('reclamosTambo', JSON.stringify(nuevosReclamos));
+      setReclamos([{ ...form }, ...reclamos]);
+      setMensaje('Reclamo registrado correctamente.');
     }
-    setForm({ cliente: '', detalle: '' });
+    setForm({ cliente: '', detalle: '', estado: 'Pendiente' });
+    setTimeout(() => setMensaje(''), 2000);
   };
 
   const handleEdit = (idx) => {
@@ -40,78 +44,150 @@ const ReclamosAdmin = () => {
   };
 
   const handleDelete = (idx) => {
-    const nuevosReclamos = reclamos.filter((_, i) => i !== idx);
-    setReclamos(nuevosReclamos);
-    localStorage.setItem('reclamosTambo', JSON.stringify(nuevosReclamos));
+    if (window.confirm('¿Seguro que deseas eliminar este reclamo?')) {
+      setReclamos(reclamos.filter((_, i) => i !== idx));
+    }
   };
 
-  return (
-    <>
-      <div className="header d-flex justify-content-between align-items-center mb-4">
-        <div className="header-left d-flex align-items-center">
-          <FaExclamationTriangle size={40} className="me-2" />
-          <h1 className="h4 mb-0 ms-2">Gestión de Reclamos</h1>
-        </div>
-        <div className="d-flex align-items-center">
-          <span>Administrador</span>
-        </div>
-      </div>
-      <div className="admin-container">
-        <div className="card">
-          <div className="card-body">
-            <h5>{editingId !== null ? 'Editar Reclamo' : 'Registrar Reclamo'}</h5>
-            <form onSubmit={handleSubmit} noValidate>
-              <input
-                type="text"
-                name="cliente"
-                value={form.cliente}
-                onChange={handleChange}
-                placeholder="Cliente"
-                className="form-control mb-2"
-                required
-              />
-              <input
-                type="text"
-                name="detalle"
-                value={form.detalle}
-                onChange={handleChange}
-                placeholder="Detalle"
-                className="form-control mb-2"
-                required
-              />
-              <button type="submit" className="btn btn-primary me-2">
-                {editingId !== null ? 'Actualizar' : 'Registrar'}
-              </button>
-            </form>
-          </div>
-        </div>
+  const handleEstado = (idx) => {
+    const nuevoEstado = reclamos[idx].estado === 'Pendiente' ? 'Resuelto' : 'Pendiente';
+    setReclamos(
+      reclamos.map((r, i) => (i === idx ? { ...r, estado: nuevoEstado } : r))
+    );
+  };
 
-        <div className="card mt-4">
-          <div className="card-body">
-            <h5>Lista de Reclamos</h5>
-            {reclamos.length === 0 ? (
-              <p>No hay reclamos registrados.</p>
-            ) : (
-              <ul className="list-group">
-                {reclamos.map((reclamo, idx) => (
-                  <li key={idx} className="list-group-item d-flex justify-content-between align-items-center">
-                    {reclamo.cliente} - {reclamo.detalle}
-                    <div>
-                      <button className="btn btn-warning btn-sm me-2" onClick={() => handleEdit(idx)}>
-                        <FaEdit /> Editar
-                      </button>
-                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(idx)}>
-                        <FaTrash /> Eliminar
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+  const reclamosFiltrados = reclamos.filter(
+    r =>
+      r.cliente.toLowerCase().includes(busqueda.toLowerCase()) ||
+      r.estado.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
+  // Tarjetas resumen
+  const total = reclamos.length;
+  const pendientes = reclamos.filter(r => r.estado === 'Pendiente').length;
+  const resueltos = reclamos.filter(r => r.estado === 'Resuelto').length;
+
+  return (
+    <div className="reclamos-admin-container">
+      <h2 className="reclamos-admin-title">Gestión de Reclamos</h2>
+
+      {/* Tarjetas resumen */}
+      <div className="reclamos-admin-cards">
+        <div className="reclamos-admin-card reclamos-admin-card-total">
+          <span>Total Reclamos</span>
+          <span>{total}</span>
+        </div>
+        <div className="reclamos-admin-card reclamos-admin-card-pendientes">
+          <span>Pendientes</span>
+          <span>{pendientes}</span>
+        </div>
+        <div className="reclamos-admin-card reclamos-admin-card-resueltos">
+          <span>Resueltos</span>
+          <span>{resueltos}</span>
         </div>
       </div>
-    </>
+
+      {/* Formulario */}
+      <form className="reclamos-admin-form" onSubmit={handleSubmit}>
+        <input
+          name="cliente"
+          placeholder="Cliente"
+          value={form.cliente}
+          onChange={handleChange}
+          required
+        />
+        <input
+          name="detalle"
+          placeholder="Detalle del reclamo"
+          value={form.detalle}
+          onChange={handleChange}
+          required
+        />
+        <select
+          name="estado"
+          value={form.estado}
+          onChange={handleChange}
+        >
+          {estados.map(e => (
+            <option key={e} value={e}>{e}</option>
+          ))}
+        </select>
+        <button type="submit">
+          {editingId !== null ? 'Actualizar' : 'Registrar'}
+        </button>
+        {mensaje && (
+          <span className="reclamos-admin-mensaje">{mensaje}</span>
+        )}
+      </form>
+
+      {/* Filtro de búsqueda */}
+      <div className="reclamos-admin-busqueda">
+        <input
+          type="text"
+          placeholder="Buscar por cliente o estado..."
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+        />
+        <span>
+          Mostrando <b>{reclamosFiltrados.length}</b> reclamos
+        </span>
+      </div>
+
+      {/* Tabla */}
+      <div className="reclamos-admin-table-container">
+        <table className="reclamos-admin-table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Detalle</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {reclamosFiltrados.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="reclamos-admin-table-empty">
+                  No hay reclamos registrados.
+                </td>
+              </tr>
+            ) : (
+              reclamosFiltrados.map((r, idx) => (
+                <tr key={idx}>
+                  <td>{r.cliente}</td>
+                  <td>{r.detalle}</td>
+                  <td>
+                    <span className={`reclamos-admin-estado ${r.estado === 'Pendiente' ? 'pendiente' : 'resuelto'}`}>
+                      {r.estado}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      className="btn-estado"
+                      onClick={() => handleEstado(idx)}
+                    >
+                      {r.estado === 'Pendiente' ? 'Marcar Resuelto' : 'Marcar Pendiente'}
+                    </button>
+                    <button
+                      className="btn-editar"
+                      onClick={() => handleEdit(idx)}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      className="btn-eliminar"
+                      onClick={() => handleDelete(idx)}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 };
 
