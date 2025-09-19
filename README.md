@@ -1,8 +1,6 @@
-<<<<<<< HEAD
 # Proyecto Tiendas Tambo
-=======
+
 # Proyecto Tiendas Tambo 2025
->>>>>>> feature-Crear_VistaPrincipal_Administrador
 
 Este proyecto se desarrolla para el curso de Herramientas de Desarrollo.
 
