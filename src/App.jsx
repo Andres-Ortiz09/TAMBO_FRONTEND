@@ -5,11 +5,11 @@ import UsuarioAdmin from './Components/UsuarioAdmin';
 import ProductosAdmin from './Components/ProductosAdmin';
 import PedidosAdmin from './Components/PedidosAdmin';
 import ReclamosAdmin from './Components/ReclamosAdmin';
+import Dashboard from './Components/Dashboard';
 
 const Inicio = () => (
   <div style={{ padding: '2rem' }}>
-    <h2>Bienvenido al Panel de Administración</h2>
-    <p>Selecciona una opción en el menú lateral.</p>
+    <Dashboard />
   </div>
 );
 
@@ -43,4 +43,7 @@ const App = () => {
 };
 
 export default App;
+
+
+
 
