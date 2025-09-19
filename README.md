@@ -1,6 +1,3 @@
-# Proyecto Tiendas Tambo
-# Proyecto Tiendas Tambo 2025
-
 # Proyecto Tiendas Tambo 2025
 
 Este proyecto se desarrolla para el curso de Herramientas de Desarrollo.
