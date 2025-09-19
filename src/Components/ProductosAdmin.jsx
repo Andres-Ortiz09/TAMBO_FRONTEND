@@ -6,8 +6,9 @@ const ProductosAdmin = () => {
   const [productos, setProductos] = useState([]);
   const [form, setForm] = useState({ nombre: '', precio: '', stock: '' });
   const [editingId, setEditingId] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [mensajeExito, setMensajeExito] = useState('');
 
-  // Leer productos del localStorage al iniciar
   useEffect(() => {
     const guardados = JSON.parse(localStorage.getItem('productosTambo')) || [];
     setProductos(guardados);
@@ -15,36 +16,62 @@ const ProductosAdmin = () => {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: '' });
+  };
+
+  const validar = () => {
+    const errores = {};
+    if (!form.nombre) errores.nombre = 'Nombre es requerido';
+    if (!form.precio) errores.precio = 'Precio es requerido';
+    else if (isNaN(form.precio) || Number(form.precio) <= 0) errores.precio = 'Precio inválido';
+    if (!form.stock) errores.stock = 'Stock es requerido';
+    else if (!Number.isInteger(Number(form.stock)) || Number(form.stock) < 0) errores.stock = 'Stock inválido';
+    return errores;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const errores = validar();
+    if (Object.keys(errores).length > 0) {
+      setErrors(errores);
+      setMensajeExito('');
+      return;
+    }
     if (editingId !== null) {
-      // Actualizar producto existente
       const nuevosProductos = productos.map((p, idx) =>
         idx === editingId ? form : p
       );
       setProductos(nuevosProductos);
       localStorage.setItem('productosTambo', JSON.stringify(nuevosProductos));
       setEditingId(null);
+      setMensajeExito('Producto actualizado correctamente');
     } else {
-      // Agregar nuevo producto
       const nuevosProductos = [...productos, form];
       setProductos(nuevosProductos);
       localStorage.setItem('productosTambo', JSON.stringify(nuevosProductos));
+      setMensajeExito('Producto registrado correctamente');
     }
     setForm({ nombre: '', precio: '', stock: '' });
+    setErrors({});
   };
 
   const handleEdit = (idx) => {
     setForm(productos[idx]);
     setEditingId(idx);
+    setErrors({});
+    setMensajeExito('');
   };
 
   const handleDelete = (idx) => {
     const nuevosProductos = productos.filter((_, i) => i !== idx);
     setProductos(nuevosProductos);
     localStorage.setItem('productosTambo', JSON.stringify(nuevosProductos));
+    setMensajeExito('Producto eliminado');
+    if (editingId === idx) {
+      setEditingId(null);
+      setForm({ nombre: '', precio: '', stock: '' });
+      setErrors({});
+    }
   };
 
   return (
@@ -70,30 +97,37 @@ const ProductosAdmin = () => {
                 value={form.nombre}
                 onChange={handleChange}
                 placeholder="Nombre"
-                className="form-control mb-2"
+                className={`form-control mb-2 ${errors.nombre ? 'is-invalid' : ''}`}
                 required
               />
+              {errors.nombre && <div className="invalid-feedback">{errors.nombre}</div>}
+              
               <input
                 type="number"
                 name="precio"
                 value={form.precio}
                 onChange={handleChange}
                 placeholder="Precio"
-                className="form-control mb-2"
+                className={`form-control mb-2 ${errors.precio ? 'is-invalid' : ''}`}
                 required
               />
+              {errors.precio && <div className="invalid-feedback">{errors.precio}</div>}
+              
               <input
                 type="number"
                 name="stock"
                 value={form.stock}
                 onChange={handleChange}
                 placeholder="Stock"
-                className="form-control mb-2"
+                className={`form-control mb-2 ${errors.stock ? 'is-invalid' : ''}`}
                 required
               />
+              {errors.stock && <div className="invalid-feedback">{errors.stock}</div>}
+
               <button type="submit" className="btn btn-primary me-2">
                 {editingId !== null ? 'Actualizar' : 'Registrar'}
               </button>
+              {mensajeExito && <span className="text-success ms-3">{mensajeExito}</span>}
             </form>
           </div>
         </div>

@@ -6,8 +6,9 @@ const PedidosAdmin = () => {
   const [pedidos, setPedidos] = useState([]);
   const [form, setForm] = useState({ cliente: '', producto: '', cantidad: '' });
   const [editingId, setEditingId] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [mensajeExito, setMensajeExito] = useState('');
 
-  // Leer pedidos al montar
   useEffect(() => {
     const guardados = JSON.parse(localStorage.getItem('pedidosTambo')) || [];
     setPedidos(guardados);
@@ -15,10 +16,26 @@ const PedidosAdmin = () => {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: '' });
+  };
+
+  const validar = () => {
+    const errores = {};
+    if (!form.cliente) errores.cliente = 'Cliente es requerido';
+    if (!form.producto) errores.producto = 'Producto es requerido';
+    if (!form.cantidad) errores.cantidad = 'Cantidad es requerida';
+    else if (!Number.isInteger(Number(form.cantidad)) || Number(form.cantidad) <= 0) errores.cantidad = 'Cantidad inválida';
+    return errores;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const errores = validar();
+    if (Object.keys(errores).length > 0) {
+      setErrors(errores);
+      setMensajeExito('');
+      return;
+    }
     if (editingId !== null) {
       const nuevosPedidos = pedidos.map((p, idx) =>
         idx === editingId ? form : p
@@ -26,23 +43,34 @@ const PedidosAdmin = () => {
       setPedidos(nuevosPedidos);
       localStorage.setItem('pedidosTambo', JSON.stringify(nuevosPedidos));
       setEditingId(null);
+      setMensajeExito('Pedido actualizado correctamente');
     } else {
       const nuevosPedidos = [...pedidos, form];
       setPedidos(nuevosPedidos);
       localStorage.setItem('pedidosTambo', JSON.stringify(nuevosPedidos));
+      setMensajeExito('Pedido registrado correctamente');
     }
     setForm({ cliente: '', producto: '', cantidad: '' });
+    setErrors({});
   };
 
   const handleEdit = (idx) => {
     setForm(pedidos[idx]);
     setEditingId(idx);
+    setErrors({});
+    setMensajeExito('');
   };
 
   const handleDelete = (idx) => {
     const nuevosPedidos = pedidos.filter((_, i) => i !== idx);
     setPedidos(nuevosPedidos);
     localStorage.setItem('pedidosTambo', JSON.stringify(nuevosPedidos));
+    setMensajeExito('Pedido eliminado');
+    if (editingId === idx) {
+      setEditingId(null);
+      setForm({ cliente: '', producto: '', cantidad: '' });
+      setErrors({});
+    }
   };
 
   return (
@@ -67,30 +95,37 @@ const PedidosAdmin = () => {
                 value={form.cliente}
                 onChange={handleChange}
                 placeholder="Cliente"
-                className="form-control mb-2"
+                className={`form-control mb-2 ${errors.cliente ? 'is-invalid' : ''}`}
                 required
               />
+              {errors.cliente && <div className="invalid-feedback">{errors.cliente}</div>}
+
               <input
                 type="text"
                 name="producto"
                 value={form.producto}
                 onChange={handleChange}
                 placeholder="Producto"
-                className="form-control mb-2"
+                className={`form-control mb-2 ${errors.producto ? 'is-invalid' : ''}`}
                 required
               />
+              {errors.producto && <div className="invalid-feedback">{errors.producto}</div>}
+
               <input
                 type="number"
                 name="cantidad"
                 value={form.cantidad}
                 onChange={handleChange}
                 placeholder="Cantidad"
-                className="form-control mb-2"
+                className={`form-control mb-2 ${errors.cantidad ? 'is-invalid' : ''}`}
                 required
               />
+              {errors.cantidad && <div className="invalid-feedback">{errors.cantidad}</div>}
+
               <button type="submit" className="btn btn-primary me-2">
                 {editingId !== null ? 'Actualizar' : 'Registrar'}
               </button>
+              {mensajeExito && <span className="text-success ms-3">{mensajeExito}</span>}
             </form>
           </div>
         </div>
