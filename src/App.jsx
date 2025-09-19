@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './App.css';
 import Sidebar from './Components/Sidebar';
 import UsuarioAdmin from './Components/UsuarioAdmin';
 import ProductosAdmin from './Components/ProductosAdmin';
