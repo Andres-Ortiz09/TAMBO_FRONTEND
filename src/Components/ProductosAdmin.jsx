@@ -1,88 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { FaBoxOpen, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
+import { FaBoxOpen, FaEdit, FaTrash } from 'react-icons/fa';
 import './ProductosAdmin.css';
 
 const ProductosAdmin = () => {
   const [productos, setProductos] = useState([]);
-  const [form, setForm] = useState({
-    nombre: '',
-    descripcion: '',
-    precio: '',
-    stock: '',
-  });
-  const [errors, setErrors] = useState({});
+  const [form, setForm] = useState({ nombre: '', precio: '', stock: '' });
   const [editingId, setEditingId] = useState(null);
-  const [mensajeExito, setMensajeExito] = useState('');
 
+  // Leer productos del localStorage al iniciar
   useEffect(() => {
     const guardados = JSON.parse(localStorage.getItem('productosTambo')) || [];
     setProductos(guardados);
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('productosTambo', JSON.stringify(productos));
-  }, [productos]);
-
-  const validar = () => {
-    const nuevosErrores = {};
-    if (!form.nombre) nuevosErrores.nombre = 'Nombre requerido';
-    if (!form.descripcion) nuevosErrores.descripcion = 'Descripción requerida';
-    if (!form.precio) nuevosErrores.precio = 'Precio requerido';
-    else if (isNaN(form.precio) || Number(form.precio) <= 0) nuevosErrores.precio = 'Precio inválido';
-    if (!form.stock) nuevosErrores.stock = 'Stock requerido';
-    else if (!Number.isInteger(Number(form.stock)) || Number(form.stock) < 0) nuevosErrores.stock = 'Stock inválido';
-    return nuevosErrores;
-  };
-
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const validacion = validar();
-    if (Object.keys(validacion).length > 0) {
-      setErrors(validacion);
-      setMensajeExito('');
-      return;
-    }
     if (editingId !== null) {
-      const actualizados = productos.map((p) =>
-        p.id === editingId ? { ...form, id: editingId } : p
+      // Actualizar producto existente
+      const nuevosProductos = productos.map((p, idx) =>
+        idx === editingId ? form : p
       );
-      setProductos(actualizados);
+      setProductos(nuevosProductos);
+      localStorage.setItem('productosTambo', JSON.stringify(nuevosProductos));
       setEditingId(null);
-      setMensajeExito('Producto actualizado correctamente');
     } else {
-      const nuevoProducto = { ...form, id: Date.now() };
-      setProductos([...productos, nuevoProducto]);
-      setMensajeExito('Producto registrado correctamente');
+      // Agregar nuevo producto
+      const nuevosProductos = [...productos, form];
+      setProductos(nuevosProductos);
+      localStorage.setItem('productosTambo', JSON.stringify(nuevosProductos));
     }
-    setForm({ nombre: '', descripcion: '', precio: '', stock: '' });
-    setErrors({});
+    setForm({ nombre: '', precio: '', stock: '' });
   };
 
-  const handleEdit = (id) => {
-    const producto = productos.find((p) => p.id === id);
-    if (producto) {
-      setForm(producto);
-      setEditingId(id);
-      setErrors({});
-      setMensajeExito('');
-    }
+  const handleEdit = (idx) => {
+    setForm(productos[idx]);
+    setEditingId(idx);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('¿Seguro que quieres eliminar este producto?')) {
-      setProductos(productos.filter((p) => p.id !== id));
-      setMensajeExito('Producto eliminado');
-      if (editingId === id) {
-        setEditingId(null);
-        setForm({ nombre: '', descripcion: '', precio: '', stock: '' });
-        setErrors({});
-      }
-    }
+  const handleDelete = (idx) => {
+    const nuevosProductos = productos.filter((_, i) => i !== idx);
+    setProductos(nuevosProductos);
+    localStorage.setItem('productosTambo', JSON.stringify(nuevosProductos));
   };
 
   return (
@@ -108,40 +70,30 @@ const ProductosAdmin = () => {
                 value={form.nombre}
                 onChange={handleChange}
                 placeholder="Nombre"
-                className={`form-control mb-2 ${errors.nombre ? 'is-invalid' : ''}`}
+                className="form-control mb-2"
+                required
               />
-              <div className="invalid-feedback">{errors.nombre}</div>
-              <input
-                type="text"
-                name="descripcion"
-                value={form.descripcion}
-                onChange={handleChange}
-                placeholder="Descripción"
-                className={`form-control mb-2 ${errors.descripcion ? 'is-invalid' : ''}`}
-              />
-              <div className="invalid-feedback">{errors.descripcion}</div>
               <input
                 type="number"
                 name="precio"
                 value={form.precio}
                 onChange={handleChange}
                 placeholder="Precio"
-                className={`form-control mb-2 ${errors.precio ? 'is-invalid' : ''}`}
+                className="form-control mb-2"
+                required
               />
-              <div className="invalid-feedback">{errors.precio}</div>
               <input
                 type="number"
                 name="stock"
                 value={form.stock}
                 onChange={handleChange}
                 placeholder="Stock"
-                className={`form-control mb-2 ${errors.stock ? 'is-invalid' : ''}`}
+                className="form-control mb-2"
+                required
               />
-              <div className="invalid-feedback">{errors.stock}</div>
               <button type="submit" className="btn btn-primary me-2">
                 {editingId !== null ? 'Actualizar' : 'Registrar'}
               </button>
-              {mensajeExito && <span className="text-success ms-2">{mensajeExito}</span>}
             </form>
           </div>
         </div>
@@ -156,24 +108,22 @@ const ProductosAdmin = () => {
                 <thead>
                   <tr>
                     <th>Nombre</th>
-                    <th>Descripción</th>
                     <th>Precio</th>
                     <th>Stock</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {productos.map((producto) => (
-                    <tr key={producto.id}>
+                  {productos.map((producto, idx) => (
+                    <tr key={idx}>
                       <td>{producto.nombre}</td>
-                      <td>{producto.descripcion}</td>
                       <td>{producto.precio}</td>
                       <td>{producto.stock}</td>
                       <td>
-                        <button className="btn btn-warning btn-sm me-2" onClick={() => handleEdit(producto.id)}>
+                        <button className="btn btn-warning btn-sm me-2" onClick={() => handleEdit(idx)}>
                           <FaEdit /> Editar
                         </button>
-                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(producto.id)}>
+                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(idx)}>
                           <FaTrash /> Eliminar
                         </button>
                       </td>

@@ -4,7 +4,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './UsuarioAdmin.css';
 
 const UsuarioAdmin = () => {
-  const [usuarios, setUsuarios] = useState([]);
+  const [usuarios, setUsuarios] = useState(() => {
+    // Cargar usuarios solo una vez al montar
+    return JSON.parse(localStorage.getItem('usuariosTambo')) || [];
+  });
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -12,78 +15,53 @@ const UsuarioAdmin = () => {
     password: '',
     phoneNumber: '',
   });
-  const [errors, setErrors] = useState({});
   const [editingId, setEditingId] = useState(null);
   const [mensajeExito, setMensajeExito] = useState('');
 
-  useEffect(() => {
-    const guardados = JSON.parse(localStorage.getItem('usuariosTambo')) || [];
-    setUsuarios(guardados);
-  }, []);
-
+  // Guardar usuarios cada vez que cambian
   useEffect(() => {
     localStorage.setItem('usuariosTambo', JSON.stringify(usuarios));
   }, [usuarios]);
 
-  const validar = () => {
-    const nuevosErrores = {};
-    if (!form.firstName) nuevosErrores.firstName = 'Nombre es requerido';
-    if (!form.lastName) nuevosErrores.lastName = 'Apellido es requerido';
-    if (!form.email) nuevosErrores.email = 'Email es requerido';
-    else if (!/\S+@\S+\.\S+/.test(form.email)) nuevosErrores.email = 'Email inválido';
-    if (!form.password) nuevosErrores.password = 'Contraseña requerida';
-    else if (form.password.length < 6) nuevosErrores.password = 'Debe tener mínimo 6 caracteres';
-    if (!form.phoneNumber) nuevosErrores.phoneNumber = 'Teléfono es requerido';
-    return nuevosErrores;
-  };
-
+  // Manejar cambios en el formulario
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
   };
 
+  // Agregar o editar usuario
   const handleSubmit = (e) => {
     e.preventDefault();
-    const validacion = validar();
-    if (Object.keys(validacion).length > 0) {
-      setErrors(validacion);
-      setMensajeExito('');
-      return;
-    }
     if (editingId !== null) {
-      const actualizados = usuarios.map((u) =>
-        u.id === editingId ? { ...form, id: editingId } : u
-      );
-      setUsuarios(actualizados);
+      setUsuarios(usuarios.map((u, idx) => (idx === editingId ? form : u)));
       setEditingId(null);
       setMensajeExito('Usuario actualizado correctamente');
     } else {
-      const nuevoUsuario = { ...form, id: Date.now() };
-      setUsuarios([...usuarios, nuevoUsuario]);
+      setUsuarios([...usuarios, form]);
       setMensajeExito('Usuario registrado correctamente');
     }
-    setForm({ firstName: '', lastName: '', email: '', password: '', phoneNumber: '' });
-    setErrors({});
+    setForm({
+      firstName: '',
+      lastName: '',
+      email: '',
+      password: '',
+      phoneNumber: '',
+    });
   };
 
-  const handleEdit = (id) => {
-    const usuario = usuarios.find((u) => u.id === id);
-    if (usuario) {
-      setForm(usuario);
-      setEditingId(id);
-      setErrors({});
-      setMensajeExito('');
-    }
+  // Editar usuario
+  const handleEdit = (idx) => {
+    setForm(usuarios[idx]);
+    setEditingId(idx);
   };
 
-  const handleDelete = (id) => {
+  // Eliminar usuario
+  const handleDelete = (idx) => {
     if (window.confirm('¿Seguro que quieres eliminar este usuario?')) {
-      setUsuarios(usuarios.filter((u) => u.id !== id));
+      setUsuarios(usuarios.filter((_, i) => i !== idx));
       setMensajeExito('Usuario eliminado');
-      if (editingId === id) {
+      if (editingId === idx) {
         setEditingId(null);
         setForm({ firstName: '', lastName: '', email: '', password: '', phoneNumber: '' });
-        setErrors({});
       }
     }
   };
@@ -113,9 +91,9 @@ const UsuarioAdmin = () => {
                   value={form.firstName}
                   onChange={handleChange}
                   placeholder="Nombre"
-                  className={`form-control ${errors.firstName ? 'is-invalid' : ''}`}
+                  className="form-control"
+                  required
                 />
-                <div className="invalid-feedback">{errors.firstName}</div>
               </div>
               <div className="col-md-6 mb-3">
                 <input
@@ -124,9 +102,9 @@ const UsuarioAdmin = () => {
                   value={form.lastName}
                   onChange={handleChange}
                   placeholder="Apellido"
-                  className={`form-control ${errors.lastName ? 'is-invalid' : ''}`}
+                  className="form-control"
+                  required
                 />
-                <div className="invalid-feedback">{errors.lastName}</div>
               </div>
             </div>
             <div className="row">
@@ -137,9 +115,9 @@ const UsuarioAdmin = () => {
                   value={form.email}
                   onChange={handleChange}
                   placeholder="Correo electrónico"
-                  className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                  className="form-control"
+                  required
                 />
-                <div className="invalid-feedback">{errors.email}</div>
               </div>
               <div className="col-md-6 mb-3">
                 <input
@@ -148,9 +126,9 @@ const UsuarioAdmin = () => {
                   value={form.password}
                   onChange={handleChange}
                   placeholder="Contraseña"
-                  className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+                  className="form-control"
+                  required
                 />
-                <div className="invalid-feedback">{errors.password}</div>
               </div>
             </div>
             <div className="mb-3">
@@ -160,9 +138,9 @@ const UsuarioAdmin = () => {
                 value={form.phoneNumber}
                 onChange={handleChange}
                 placeholder="Teléfono"
-                className={`form-control ${errors.phoneNumber ? 'is-invalid' : ''}`}
+                className="form-control"
+                required
               />
-              <div className="invalid-feedback">{errors.phoneNumber}</div>
             </div>
             <button type="submit" className="btn btn-primary me-2">
               {editingId !== null ? 'Actualizar' : (<><FaPlus className="me-1" /> Agregar Usuario</>)}
@@ -188,17 +166,17 @@ const UsuarioAdmin = () => {
                 </tr>
               </thead>
               <tbody>
-                {usuarios.map((usuario) => (
-                  <tr key={usuario.id}>
+                {usuarios.map((usuario, idx) => (
+                  <tr key={idx}>
                     <td>{usuario.firstName}</td>
                     <td>{usuario.lastName}</td>
                     <td>{usuario.email}</td>
                     <td>{usuario.phoneNumber}</td>
                     <td>
-                      <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(usuario.id)} title="Editar">
+                      <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(idx)} title="Editar">
                         <FaEdit />
                       </button>
-                      <button className="btn btn-sm btn-danger" onClick={() => handleDelete(usuario.id)} title="Eliminar">
+                      <button className="btn btn-sm btn-danger" onClick={() => handleDelete(idx)} title="Eliminar">
                         <FaTrash />
                       </button>
                     </td>
