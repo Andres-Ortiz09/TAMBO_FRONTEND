@@ -1,76 +1,70 @@
 import React from 'react';
-import { FaHome, FaUsers, FaBoxOpen, FaShoppingCart, FaExclamationTriangle, FaSignOutAlt } from 'react-icons/fa';
+import { FaHome, FaUsers, FaBoxOpen, FaShoppingCart, FaSignOutAlt } from 'react-icons/fa';
 import logo from '../assets/img/logo-tambo2.png';
 import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 
 const Sidebar = ({ setVista, vista }) => {
   const navigate = useNavigate();
+
+  // Cerrar sesión
   const handleLogout = () => {
-    localStorage.removeItem('registroUsuario');
-    navigate('/');
+    localStorage.removeItem('registroUsuario'); // limpiar sesión
+    navigate('/'); // volver al inicio
   };
+
   return (
     <nav className="sidebar">
-      <a href="/" className="sidebar-logo-link">
-        <img src={logo} alt="Logo" className="sidebar-logo-img" />
+      {/* Logo */}
+      <a href="#" className="sidebar-logo-link">
+        <img src={logo} alt="Logo Tambo" className="sidebar-logo-img" />
       </a>
 
       <hr />
 
+      {/* Navegación */}
       <ul className="nav flex-column mb-auto">
         <li>
           <a
             href="#"
             className={`nav-link ${vista === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setVista('dashboard')}
+            onClick={() => setVista('dashboard')} // Solo dashboard tiene acción
           >
-            <FaHome className="me-2" />Dashboard
+            <FaHome className="me-2" /> Dashboard
           </a>
         </li>
         <li>
-          <a
-            href="#"
+          <span
             className={`nav-link ${vista === 'usuarios' ? 'active' : ''}`}
-            onClick={() => setVista('usuarios')}
+            style={{ cursor: 'default', color: 'inherit' }}
           >
-            <FaUsers className="me-2" />Usuarios
-          </a>
+            <FaUsers className="me-2" /> Usuarios
+          </span>
         </li>
         <li>
-          <a
-            href="#"
+          <span
             className={`nav-link ${vista === 'productos' ? 'active' : ''}`}
-            onClick={() => setVista('productos')}
+            style={{ cursor: 'default', color: 'inherit' }}
           >
-            <FaBoxOpen className="me-2" />Productos
-          </a>
+            <FaBoxOpen className="me-2" /> Productos
+          </span>
         </li>
         <li>
-          <a
-            href="#"
+          <span
             className={`nav-link ${vista === 'pedidos' ? 'active' : ''}`}
-            onClick={() => setVista('pedidos')}
+            style={{ cursor: 'default', color: 'inherit' }}
           >
-            <FaShoppingCart className="me-2" />Pedidos
-          </a>
-        </li>
-        <li>
-          <a
-            href="#"
-            className={`nav-link ${vista === 'reclamos' ? 'active' : ''}`}
-            onClick={() => setVista('reclamos')}
-          >
-            <FaExclamationTriangle className="me-2" />Reclamos
-          </a>
+            <FaShoppingCart className="me-2" /> Pedidos
+          </span>
         </li>
       </ul>
 
       <hr />
 
+      {/* Botón cerrar sesión */}
       <div className="mt-auto">
         <button className="btn btn-outline-danger w-100" onClick={handleLogout}>
-          <FaSignOutAlt className="me-2" />Cerrar sesión
+          <FaSignOutAlt className="me-2" /> Cerrar sesión
         </button>
       </div>
     </nav>
