@@ -7,6 +7,7 @@ const UsuarioAdmin = () => {
   const [usuarios, setUsuarios] = useState(() => {
     return JSON.parse(localStorage.getItem('usuariosTambo')) || [];
   });
+
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -14,6 +15,7 @@ const UsuarioAdmin = () => {
     password: '',
     phoneNumber: '',
   });
+
   const [editingId, setEditingId] = useState(null);
   const [mensajeExito, setMensajeExito] = useState('');
   const [errors, setErrors] = useState({});
@@ -24,20 +26,42 @@ const UsuarioAdmin = () => {
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' }); // Limpiar error al cambiar campo
+    setErrors({ ...errors, [e.target.name]: '' });
   };
 
   const validar = () => {
     const errores = {};
-    if (!form.firstName) errores.firstName = 'Nombre es requerido';
-    if (!form.lastName) errores.lastName = 'Apellido es requerido';
-    if (!form.email) errores.email = 'Correo es requerido';
-    else if (!/\S+@\S+\.\S+/.test(form.email)) errores.email = 'Correo inválido';
-    if (!form.password) errores.password = 'Contraseña es requerida';
-    else if (form.password.length < 6) errores.password = 'Debe tener mínimo 6 caracteres';
-    if (!form.phoneNumber) errores.phoneNumber = 'Teléfono es requerido';
-    else if (/\D/.test(form.phoneNumber)) errores.phoneNumber = 'Teléfono inválido';
-    else if (form.phoneNumber.length !== 9) errores.phoneNumber = 'Teléfono debe tener 9 dígitos';
+
+    if (!form.firstName.trim()) {
+      errores.firstName = 'Nombre es requerido';
+    } else if (/\d/.test(form.firstName)) {
+      errores.firstName = 'El nombre no puede contener números';
+    }
+
+    if (!form.lastName.trim()) {
+      errores.lastName = 'Apellido es requerido';
+    } else if (/\d/.test(form.lastName)) {
+      errores.lastName = 'El apellido no puede contener números';
+    }
+
+    if (!form.email.trim()) {
+      errores.email = 'Correo es requerido';
+    } else if (!form.email.endsWith('@gmail.com')) {
+      errores.email = 'El correo debe terminar en @gmail.com';
+    }
+
+    if (!form.password) {
+      errores.password = 'Contraseña es requerida';
+    } else if (form.password.length < 6) {
+      errores.password = 'Debe tener mínimo 6 caracteres';
+    }
+
+    if (!form.phoneNumber.trim()) {
+      errores.phoneNumber = 'Teléfono es requerido';
+    } else if (!/^\d{9}$/.test(form.phoneNumber)) {
+      errores.phoneNumber = 'Teléfono debe tener exactamente 9 dígitos numéricos';
+    }
+
     return errores;
   };
 
@@ -49,6 +73,7 @@ const UsuarioAdmin = () => {
       setMensajeExito('');
       return;
     }
+
     if (editingId !== null) {
       setUsuarios(usuarios.map((u, idx) => (idx === editingId ? form : u)));
       setEditingId(null);
@@ -57,6 +82,7 @@ const UsuarioAdmin = () => {
       setUsuarios([...usuarios, form]);
       setMensajeExito('Usuario registrado correctamente');
     }
+
     setForm({
       firstName: '',
       lastName: '',
@@ -115,25 +141,41 @@ const UsuarioAdmin = () => {
                   type="text"
                   name="firstName"
                   value={form.firstName}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                    setForm({ ...form, firstName: value });
+                    setErrors({ ...errors, firstName: '' });
+                  }}
+                  onKeyPress={(e) => {
+                    if (!/[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(e.key)) e.preventDefault();
+                  }}
                   placeholder="Nombre"
                   className={`form-control ${errors.firstName ? 'is-invalid' : ''}`}
                   required
                 />
                 {errors.firstName && <div className="invalid-feedback">{errors.firstName}</div>}
               </div>
+
               <div className="col-md-6 mb-3">
                 <input
                   type="text"
                   name="lastName"
                   value={form.lastName}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                    setForm({ ...form, lastName: value });
+                    setErrors({ ...errors, lastName: '' });
+                  }}
+                  onKeyPress={(e) => {
+                    if (!/[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(e.key)) e.preventDefault();
+                  }}
                   placeholder="Apellido"
                   className={`form-control ${errors.lastName ? 'is-invalid' : ''}`}
                   required
                 />
                 {errors.lastName && <div className="invalid-feedback">{errors.lastName}</div>}
               </div>
+
             </div>
             <div className="row">
               <div className="col-md-6 mb-3">
@@ -166,7 +208,13 @@ const UsuarioAdmin = () => {
                 type="text"
                 name="phoneNumber"
                 value={form.phoneNumber}
-                onChange={handleChange}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (/^\d{0,9}$/.test(value)) {
+                    setForm({ ...form, phoneNumber: value });
+                    setErrors({ ...errors, phoneNumber: '' });
+                  }
+                }}
                 placeholder="Teléfono"
                 className={`form-control ${errors.phoneNumber ? 'is-invalid' : ''}`}
                 required
