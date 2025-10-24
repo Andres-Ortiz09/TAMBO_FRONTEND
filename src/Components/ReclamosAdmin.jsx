@@ -7,9 +7,12 @@ const ReclamosAdmin = () => {
   const [reclamos, setReclamos] = useState(() => {
     return JSON.parse(localStorage.getItem('reclamosTambo')) || [];
   });
+
   const [form, setForm] = useState({ cliente: '', detalle: '', estado: 'Pendiente' });
   const [editingId, setEditingId] = useState(null);
   const [busqueda, setBusqueda] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('Todos');
+  const [detalleExpandido, setDetalleExpandido] = useState(null);
   const [mensaje, setMensaje] = useState('');
 
   useEffect(() => {
@@ -56,13 +59,17 @@ const ReclamosAdmin = () => {
     );
   };
 
-  const reclamosFiltrados = reclamos.filter(
-    r =>
+  const reclamosFiltrados = reclamos.filter(r => {
+    const coincideBusqueda =
       r.cliente.toLowerCase().includes(busqueda.toLowerCase()) ||
-      r.estado.toLowerCase().includes(busqueda.toLowerCase())
-  );
+      r.estado.toLowerCase().includes(busqueda.toLowerCase());
 
-  // Tarjetas resumen
+    const coincideEstado =
+      filtroEstado === 'Todos' || r.estado === filtroEstado;
+
+    return coincideBusqueda && coincideEstado;
+  });
+
   const total = reclamos.length;
   const pendientes = reclamos.filter(r => r.estado === 'Pendiente').length;
   const resueltos = reclamos.filter(r => r.estado === 'Resuelto').length;
@@ -71,7 +78,6 @@ const ReclamosAdmin = () => {
     <div className="reclamos-admin-container">
       <h2 className="reclamos-admin-title">Gestión de Reclamos</h2>
 
-      {/* Tarjetas resumen */}
       <div className="reclamos-admin-cards">
         <div className="reclamos-admin-card reclamos-admin-card-total">
           <span>Total Reclamos</span>
@@ -87,40 +93,7 @@ const ReclamosAdmin = () => {
         </div>
       </div>
 
-      {/* Formulario */}
-      <form className="reclamos-admin-form" onSubmit={handleSubmit}>
-        <input
-          name="cliente"
-          placeholder="Cliente"
-          value={form.cliente}
-          onChange={handleChange}
-          required
-        />
-        <input
-          name="detalle"
-          placeholder="Detalle del reclamo"
-          value={form.detalle}
-          onChange={handleChange}
-          required
-        />
-        <select
-          name="estado"
-          value={form.estado}
-          onChange={handleChange}
-        >
-          {estados.map(e => (
-            <option key={e} value={e}>{e}</option>
-          ))}
-        </select>
-        <button type="submit">
-          {editingId !== null ? 'Actualizar' : 'Registrar'}
-        </button>
-        {mensaje && (
-          <span className="reclamos-admin-mensaje">{mensaje}</span>
-        )}
-      </form>
 
-      {/* Filtro de búsqueda */}
       <div className="reclamos-admin-busqueda">
         <input
           type="text"
@@ -128,12 +101,20 @@ const ReclamosAdmin = () => {
           value={busqueda}
           onChange={e => setBusqueda(e.target.value)}
         />
-        <span>
+        <select
+          value={filtroEstado}
+          onChange={e => setFiltroEstado(e.target.value)}
+          className="ms-2"
+        >
+          <option value="Todos">Todos</option>
+          <option value="Pendiente">Pendiente</option>
+          <option value="Resuelto">Resuelto</option>
+        </select>
+        <span className="ms-3">
           Mostrando <b>{reclamosFiltrados.length}</b> reclamos
         </span>
       </div>
 
-      {/* Tabla */}
       <div className="reclamos-admin-table-container">
         <table className="reclamos-admin-table">
           <thead>
@@ -155,29 +136,37 @@ const ReclamosAdmin = () => {
               reclamosFiltrados.map((r, idx) => (
                 <tr key={idx}>
                   <td>{r.cliente}</td>
-                  <td>{r.detalle}</td>
+                  <td>
+                    <div className={`detalle-wrapper ${detalleExpandido === idx ? 'expandido' : ''}`}>
+                      <div className="detalle-contenido">
+                        {detalleExpandido === idx
+                          ? r.detalle
+                          : r.detalle.length > 50
+                            ? `${r.detalle.slice(0, 50)}...`
+                            : r.detalle}
+                      </div>
+                      {r.detalle.length > 50 && (
+                        <button
+                          className="btn-ver-toggle"
+                          onClick={() =>
+                            setDetalleExpandido(detalleExpandido === idx ? null : idx)
+                          }
+                        >
+                          {detalleExpandido === idx ? 'Ver menos' : 'Ver más'}
+                        </button>
+                      )}
+                    </div>
+                  </td>
                   <td>
                     <span className={`reclamos-admin-estado ${r.estado === 'Pendiente' ? 'pendiente' : 'resuelto'}`}>
                       {r.estado}
                     </span>
                   </td>
                   <td>
-                    <button
-                      className="btn-estado"
-                      onClick={() => handleEstado(idx)}
-                    >
+                    <button className="btn-estado" onClick={() => handleEstado(idx)}>
                       {r.estado === 'Pendiente' ? 'Marcar Resuelto' : 'Marcar Pendiente'}
                     </button>
-                    <button
-                      className="btn-editar"
-                      onClick={() => handleEdit(idx)}
-                    >
-                      Editar
-                    </button>
-                    <button
-                      className="btn-eliminar"
-                      onClick={() => handleDelete(idx)}
-                    >
+                    <button className="btn-eliminar" onClick={() => handleDelete(idx)}>
                       Eliminar
                     </button>
                   </td>

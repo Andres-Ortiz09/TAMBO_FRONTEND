@@ -1,3 +1,81 @@
+/* === Contenedor principal === */
 .admin-container {
   padding: 2rem;
+  background-color: #f9f9f9;
+}
+
+/* === Encabezado === */
+.header {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 1rem;
+}
+
+.header-left h1 {
+  font-weight: 700;
+  color: #232946;
+}
+
+.header-left svg {
+  color: #232946;
+}
+
+/* === Botón PDF === */
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+/* === Tarjeta de listado === */
+.card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  background-color: #fff;
+}
+
+.card-body h5 {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #232946;
+}
+
+/* === Tabla de pedidos === */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background-color: #f4f6f8;
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+  font-size: 15px;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .admin-container {
+    padding: 1rem;
+  }
+
+  .table th,
+  .table td {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .btn-danger {
+    width: 100%;
+    justify-content: center;
+  }
 }
