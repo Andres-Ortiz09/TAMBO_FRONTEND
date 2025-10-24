@@ -1,140 +1,216 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import './Inicio.css';
-
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from 'react-router-dom';
 import logo from '../assets/img/logo-tambo2.png';
-import cervezaImg from '../assets/img/Cerveza_3_Cruces.jpg';
-import empanadaImg from '../assets/img/empanada_pollo.jpeg';
-import aguaImg from '../assets/img/Agua_Mineral.jpeg';
-import papitasImg from '../assets/img/Inka_chips.jpeg';
+import { getCurrentUser } from '../api';
 
-const Inicio = () => {
-  const [usuario, setUsuario] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
+export default function Inicio() {
+  const [user, setUser] = useState(null);
+  const [animate, setAnimate] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const userString = localStorage.getItem('registroUsuario');
-    if (userString) {
-      const user = JSON.parse(userString);
-      if (user.email.endsWith('@tambo.com')) {
-        navigate('/panel');
-      } else {
-        setUsuario(user);
-      }
+    setAnimate(true);
+    const token = localStorage.getItem('token');
+    if (token) {
+      getCurrentUser(token)
+        .then(u => setUser(u))
+        .catch(() => {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setUser(null);
+        });
     }
-  }, [navigate]);
+  }, []);
+
+  useEffect(() => {
+    if (user?.role === 'admin') {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('registroUsuario');
-    setUsuario(null);
-    navigate('/');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    navigate('/login');
   };
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
-
-  const productos = [
-    {
-      nombre: 'Cerveza Tres Cruces Lager Six Pack Lata',
-      categoria: 'Bebidas',
-      descripcion: 'Pack de 6 cervezas artesanales con sabor refrescante y cuerpo ligero.',
-      imagen: cervezaImg,
-    },
-    {
-      nombre: 'Empanada de Pollo Tambo',
-      categoria: 'Comida',
-      descripcion: 'Empanada rellena de pollo jugoso y especias, ideal para cualquier momento.',
-      imagen: empanadaImg,
-    },
-    {
-      nombre: 'Agua Mineral',
-      categoria: 'Bebidas',
-      descripcion: 'Agua purificada y mineralizada, perfecta para mantenerte hidratado.',
-      imagen: aguaImg,
-    },
-    {
-      nombre: 'Inka Chips',
-      categoria: 'Snacks',
-      descripcion: 'Chips crocantes de papas nativas, sabor peruano auténtico.',
-      imagen: papitasImg,
-    },
+  const benefits = [
+    { icon: "🛒", title: "Variedad de productos", description: "Encuentra todo lo que necesitas para tu hogar." },
+    { icon: "💰", title: "Precios competitivos", description: "Ofertas y promociones todos los días." },
+    { icon: "🚚", title: "Entrega rápida", description: "Recibe tus productos cómodamente en tu hogar." },
   ];
 
   return (
-    <div className="inicio-container">
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="navbar-left">
-          <img src={logo} alt="Logo Tambo" className="navbar-logo" />
-          <button className="hamburger-btn" onClick={toggleMenu}>☰ Productos</button>
-          
+    <div style={styles.container}>
+      <header style={styles.header}>
+        <div style={styles.logoWrapper}>
+          <img src={logo} alt="Logo Tambo" style={styles.logotambo} />
         </div>
-        <div className="navbar-right">
-          {!usuario ? (
+
+        <nav style={styles.nav}>
+          {!user ? (
             <>
-              <Link to="/login" className="btn-login">Iniciar sesión</Link>
-              <Link to="/registro" className="btn-register">Registrarse</Link>
+              <Link to="/login" style={styles.navLink}>Iniciar Sesión</Link>
+              <Link to="/registro" style={styles.navLink}>Registrarse</Link>
             </>
           ) : (
-            <>
-              <span>Bienvenido, {usuario.firstName}!</span>
-              <button onClick={handleLogout} className="btn-register">Cerrar sesión</button>
-            </>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <span style={styles.welcome}>Bienvenido, {user.firstName || user.name || "Usuario"}</span>
+              <button style={styles.btnLogout} onClick={handleLogout}>Cerrar Sesión</button>
+            </div>
           )}
-        </div>
-      </nav>
+        </nav>
+      </header>
 
-      {/* Pop-up de productos */}
-      {menuOpen && (
-        <div className="popup-menu">
-          <div className="popup-content">
-            <h3>Categorías de productos</h3>
-            <ul>
-              {productos.map((producto, index) => (
-                <li key={index}>
-                  <span className="producto-nombre">{producto.nombre}</span>
-                  <span className="producto-categoria">{producto.categoria}</span>
-                </li>
-              ))}
-            </ul>
+      {/* MAIN */}
+      <main style={styles.main}>
+        <section style={styles.heroSection}>
+          <div style={styles.heroText}>
+            <h2>Compra productos de Tambo con confianza</h2>
+            <p>Tu minimarket online para todas tus necesidades diarias.</p>
           </div>
-        </div>
-      )}
-
-      {/* Banner + Cards */}
-      <section className="inicio-banner">
-        <div className="banner-content">
-          <h1>PROMOCIONES DEL DÍA</h1>
-
-          <div className="card-grid">
-            {productos.map((producto, index) => (
-              <div className="producto-card" key={index}>
-                <img src={producto.imagen} alt={producto.nombre} className="producto-imagen" />
-                <h4>{producto.nombre}</h4>
-                <p className="categoria">{producto.categoria}</p>
-                <p className="descripcion">{producto.descripcion}</p>
-                <button className="btn-add">Añadir</button>
-              </div>
-            ))}
+          <div style={styles.imageWrapper}>
+            <img
+              src="https://d1h08qwp2t1dnu.cloudfront.net/assets/media/es_pe/images/flyergibs/crop_68ea6ac5-4248-4bf3-86d3-004f0ad300c7_20251011163343_webp.webp"
+              alt="Minimarket"
+              style={styles.heroImage}
+            />
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="footer-content">
-          <p>© {new Date().getFullYear()} Tiendas Tambo+. Todos los derechos reservados.</p>
-          <ul className="footer-links">
-            <li><a href="#politica">Política de Privacidad</a></li>
-            <li><a href="#terminos">Términos y Condiciones</a></li>
-            <li><a href="#contacto-footer">Contacto</a></li>
-          </ul>
-        </div>
+        <section style={styles.infoSection}>
+          <h3>¿Por qué elegir Tambo?</h3>
+          <p>Conectamos a nuestros clientes con productos de calidad y variedad.</p>
+          <p>Disfruta de la mejor experiencia de compra en tu minimarket de confianza.</p>
+        </section>
+
+        <section style={styles.infoSection}>
+          <h3>Compromiso y conveniencia</h3>
+          <p>Ofrecemos precios justos y entregas rápidas.</p>
+          <p>Siempre pensamos en tu comodidad y satisfacción.</p>
+        </section>
+
+        <section style={styles.cardsSection}>
+          {benefits.map(({ icon, title, description }, i) => (
+            <div
+              key={i}
+              style={{
+                ...styles.card,
+                opacity: animate ? 1 : 0,
+                transform: animate ? "translateY(0)" : "translateY(30px)",
+                transition: `all 0.6s ease ${(i + 1) * 0.3}s`,
+              }}
+            >
+              <div style={styles.cardIcon}>{icon}</div>
+              <h3>{title}</h3>
+              <p>{description}</p>
+            </div>
+          ))}
+        </section>
+      </main>
+
+      <footer style={styles.footerBottom}>
+        <p>© 2025 Tambo. Todos los derechos reservados.</p>
       </footer>
     </div>
   );
-};
+}
 
-export default Inicio;
+const styles = {
+  container: {
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    display: "flex",
+    flexDirection: "column",
+    minHeight: "100vh",
+    backgroundColor: "#f3e5f5",
+    color: "#4a148c",
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "1rem 2rem",
+    backgroundColor: "#7b1fa2",
+    color: "white",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+    position: "sticky",
+    top: 0,
+    zIndex: 100,
+  },
+  logoWrapper: { flex: "0 0 auto" },
+  logotambo: {
+    height: "50px",
+    width: "auto",
+    objectFit: "contain"
+  },
+  nav: { display: "flex", alignItems: "center", gap: "1rem" },
+  navLink: {
+    color: "white",
+    textDecoration: "none",
+    fontWeight: 600,
+    padding: "0.5rem 1rem",
+    borderRadius: "20px",
+    transition: "0.3s",
+    backgroundColor: "#9c27b0",
+  },
+  welcome: { fontWeight: 600, marginRight: "1rem" },
+  btnLogout: {
+    padding: "0.5rem 1rem",
+    border: "none",
+    borderRadius: "20px",
+    backgroundColor: "#d500f9",
+    color: "white",
+    fontWeight: 600,
+    cursor: "pointer",
+  },
+  main: { flexGrow: 1, padding: "2rem" },
+  heroSection: {
+    display: "flex",
+    gap: "2rem",
+    flexWrap: "wrap",
+    alignItems: "center",
+    marginBottom: "2rem",
+  },
+  heroText: { flex: "1 1 300px" },
+  imageWrapper: {
+    flex: "1 1 400px",
+    maxWidth: 500,
+    overflow: "hidden",
+    borderRadius: 16,
+    boxShadow: "0 6px 14px rgba(0,0,0,0.15)",
+  },
+  heroImage: { width: "100%", height: "100%", objectFit: "cover" },
+  infoSection: {
+    backgroundColor: "#e1bee7",
+    padding: "2rem",
+    borderRadius: "16px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+    marginBottom: "2rem",
+  },
+  cardsSection: {
+    display: "flex",
+    justifyContent: "center",
+    gap: "2rem",
+    flexWrap: "wrap",
+  },
+  card: {
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: "1.5rem",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+    flex: "1 1 220px",
+    maxWidth: 280,
+    textAlign: "center",
+  },
+  cardIcon: { fontSize: "3rem", marginBottom: "0.5rem" },
+
+  // FOOTER FINAL
+  footerBottom: {
+    backgroundColor: "#ce996dff",
+    color: "white",
+    textAlign: "center",
+    padding: "1rem",
+    fontWeight: 600,
+  },
+};
