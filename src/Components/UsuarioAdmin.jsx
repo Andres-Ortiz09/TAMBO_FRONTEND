@@ -2,12 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaUser, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./UsuarioAdmin.css";
-import {
-  getAllUsers,
-  createUser,
-  updateUser,
-  deleteUser,
-} from "../users";
+import { getAllUsers, createUser, updateUser, deleteUser } from "../users";
 
 const UsuarioAdmin = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -16,13 +11,14 @@ const UsuarioAdmin = () => {
     lastName: "",
     email: "",
     password: "",
+    repeatPassword: "",
     address: "",
     phone: "",
   });
   const [editingId, setEditingId] = useState(null);
   const [mensajeExito, setMensajeExito] = useState("");
   const [errors, setErrors] = useState({});
-  const token = localStorage.getItem("token"); // token del login
+  const token = localStorage.getItem("token");
 
   // Cargar usuarios desde el backend
   useEffect(() => {
@@ -38,7 +34,7 @@ const UsuarioAdmin = () => {
     }
   };
 
-  //  Validaciones
+  // Validaciones
   const validar = () => {
     const err = {};
     if (!form.firstName.trim()) err.firstName = "El nombre es obligatorio";
@@ -56,6 +52,10 @@ const UsuarioAdmin = () => {
     if (!form.password.trim()) err.password = "La contraseña es obligatoria";
     else if (form.password.length < 6)
       err.password = "Debe tener al menos 6 caracteres";
+
+    if (!form.repeatPassword.trim()) err.repeatPassword = "Debe repetir la contraseña";
+    else if (form.password !== form.repeatPassword)
+      err.repeatPassword = "Las contraseñas no coinciden";
 
     if (!form.address.trim()) err.address = "La dirección es obligatoria";
 
@@ -89,27 +89,28 @@ const UsuarioAdmin = () => {
         lastName: "",
         email: "",
         password: "",
+        repeatPassword: "",
         address: "",
         phone: "",
       });
       setEditingId(null);
       setErrors({});
-      fetchUsers(); // recargar lista
+      fetchUsers();
     } catch (error) {
       console.error("Error al guardar usuario:", error);
       alert("Error al guardar el usuario");
     }
   };
 
-  //Editar usuario
+  // Editar usuario
   const handleEdit = (user) => {
-    setForm(user);
+    setForm({ ...user, repeatPassword: user.password });
     setEditingId(user.id);
     setMensajeExito("");
     setErrors({});
   };
 
-  //  Eliminar usuario
+  // Eliminar usuario
   const handleDelete = async (id) => {
     if (window.confirm("¿Seguro que deseas eliminar este usuario?")) {
       try {
@@ -122,17 +123,14 @@ const UsuarioAdmin = () => {
     }
   };
 
-  //  Manejo de cambios con validaciones en tiempo real
+  // Manejo de cambios con validaciones en tiempo real
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Validaciones por campo
     if (name === "firstName" || name === "lastName") {
-      // Solo letras y espacios
       const soloLetras = value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, "");
       setForm({ ...form, [name]: soloLetras });
     } else if (name === "phone") {
-      // Solo números, máximo 9 dígitos
       const soloNumeros = value.replace(/\D/g, "").slice(0, 9);
       setForm({ ...form, [name]: soloNumeros });
     } else {
@@ -195,6 +193,7 @@ const UsuarioAdmin = () => {
               </div>
             </div>
 
+            {/* Fila correo y teléfono */}
             <div className="row">
               <div className="col-md-6 mb-3">
                 <input
@@ -213,6 +212,25 @@ const UsuarioAdmin = () => {
 
               <div className="col-md-6 mb-3">
                 <input
+                  type="text"
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder="Teléfono"
+                  maxLength="9"
+                  className={`form-control ${errors.phone ? "is-invalid" : ""}`}
+                  required
+                />
+                {errors.phone && (
+                  <div className="invalid-feedback">{errors.phone}</div>
+                )}
+              </div>
+            </div>
+
+            {/* Fila contraseña y repetir */}
+            <div className="row">
+              <div className="col-md-6 mb-3">
+                <input
                   type="password"
                   name="password"
                   value={form.password}
@@ -225,8 +243,24 @@ const UsuarioAdmin = () => {
                   <div className="invalid-feedback">{errors.password}</div>
                 )}
               </div>
+
+              <div className="col-md-6 mb-3">
+                <input
+                  type="password"
+                  name="repeatPassword"
+                  value={form.repeatPassword}
+                  onChange={handleChange}
+                  placeholder="Repetir Contraseña"
+                  className={`form-control ${errors.repeatPassword ? "is-invalid" : ""}`}
+                  required
+                />
+                {errors.repeatPassword && (
+                  <div className="invalid-feedback">{errors.repeatPassword}</div>
+                )}
+              </div>
             </div>
 
+            {/* Dirección */}
             <div className="mb-3">
               <input
                 type="text"
@@ -239,22 +273,6 @@ const UsuarioAdmin = () => {
               />
               {errors.address && (
                 <div className="invalid-feedback">{errors.address}</div>
-              )}
-            </div>
-
-            <div className="mb-3">
-              <input
-                type="text"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                placeholder="Teléfono"
-                maxLength="9"
-                className={`form-control ${errors.phone ? "is-invalid" : ""}`}
-                required
-              />
-              {errors.phone && (
-                <div className="invalid-feedback">{errors.phone}</div>
               )}
             </div>
 

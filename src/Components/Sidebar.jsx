@@ -78,7 +78,8 @@ const Sidebar = ({ setVista, vista }) => {
         <li>
           <span
             className={`nav-link ${vista === 'pedidos' ? 'active' : ''}`}
-            style={{ cursor: 'default', color: 'inherit' }}
+            onClick={() => setVista('pedidos')}
+            style={{ cursor: 'pointer' }}
           >
             <FaShoppingCart className="me-2" /> Pedidos
           </span>

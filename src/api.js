@@ -18,3 +18,16 @@ export const getCurrentUser = async (token) => {
   });
   return response.data; // devuelve el objeto User
 };
+
+const API = axios.create({
+  baseURL: 'http://localhost:8080/api',
+});
+
+// Si usas JWT
+API.interceptors.request.use((req) => {
+  const token = localStorage.getItem('token');
+  if (token) req.headers.Authorization = `Bearer ${token}`;
+  return req;
+});
+
+export default API;
