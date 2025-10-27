@@ -1,16 +1,31 @@
-import React from 'react';
-import { FaHome, FaUsers, FaBoxOpen, FaShoppingCart, FaSignOutAlt } from 'react-icons/fa';
+import React, { useEffect, useState } from 'react';
+import { FaHome, FaUsers, FaBoxOpen, FaShoppingCart, FaSignOutAlt, FaUserTie } from 'react-icons/fa';
 import logo from '../assets/img/logo-tambo2.png';
 import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 
 const Sidebar = ({ setVista, vista }) => {
   const navigate = useNavigate();
+  const [nombreAdmin, setNombreAdmin] = useState("");
+
+  // Recuperar datos del usuario logueado
+  useEffect(() => {
+    const usuario = JSON.parse(localStorage.getItem("registroUsuario"));
+    if (usuario && usuario.firstName) {
+      setNombreAdmin(usuario.firstName);
+    } else {
+      setNombreAdmin("Administrador");
+    }
+  }, []);
 
   // Cerrar sesión
   const handleLogout = () => {
-    localStorage.removeItem('registroUsuario'); // limpiar sesión
-    navigate('/'); // volver al inicio
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('registroUsuario');
+
+    //Redirigir al inicio
+    navigate('/');
   };
 
   return (
@@ -20,6 +35,15 @@ const Sidebar = ({ setVista, vista }) => {
         <img src={logo} alt="Logo Tambo" className="sidebar-logo-img" />
       </a>
 
+      {/*Sección de bienvenida */}
+      <div className="sidebar-welcome">
+        <FaUserTie className="sidebar-admin-icon" />
+        <div>
+          <p className="sidebar-welcome-title">Bienvenido</p>
+          <p className="sidebar-welcome-name">{nombreAdmin}</p>
+        </div>
+      </div>
+
       <hr />
 
       {/* Navegación */}
@@ -28,7 +52,7 @@ const Sidebar = ({ setVista, vista }) => {
           <a
             href="#"
             className={`nav-link ${vista === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setVista('dashboard')} // Solo dashboard tiene acción
+            onClick={() => setVista('dashboard')}
           >
             <FaHome className="me-2" /> Dashboard
           </a>
@@ -36,7 +60,8 @@ const Sidebar = ({ setVista, vista }) => {
         <li>
           <span
             className={`nav-link ${vista === 'usuarios' ? 'active' : ''}`}
-            style={{ cursor: 'default', color: 'inherit' }}
+            onClick={() => setVista('usuarios')}
+            style={{ cursor: 'pointer' }}
           >
             <FaUsers className="me-2" /> Usuarios
           </span>
@@ -44,7 +69,8 @@ const Sidebar = ({ setVista, vista }) => {
         <li>
           <span
             className={`nav-link ${vista === 'productos' ? 'active' : ''}`}
-            style={{ cursor: 'default', color: 'inherit' }}
+            onClick={() => setVista('productos')}
+            style={{ cursor: 'pointer' }}
           >
             <FaBoxOpen className="me-2" /> Productos
           </span>
