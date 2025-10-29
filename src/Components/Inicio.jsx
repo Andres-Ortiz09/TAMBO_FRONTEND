@@ -63,7 +63,6 @@ export default function Inicio() {
         </nav>
       </header>
 
-      {/* MAIN */}
       <main style={styles.main}>
         <section style={styles.heroSection}>
           <div style={styles.heroText}>
@@ -125,13 +124,16 @@ const styles = {
     minHeight: "100vh",
     backgroundColor: "#f3e5f5",
     color: "#4a148c",
+    margin: 0,
+    padding: 0,
+    boxSizing: "border-box",
   },
   header: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
     padding: "1rem 2rem",
-    backgroundColor: "#7b1fa2",
+    backgroundColor: "#58007eff",
     color: "white",
     boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
     position: "sticky",
@@ -142,7 +144,7 @@ const styles = {
   logotambo: {
     height: "50px",
     width: "auto",
-    objectFit: "contain"
+    objectFit: "contain",
   },
   nav: { display: "flex", alignItems: "center", gap: "1rem" },
   navLink: {
@@ -171,6 +173,7 @@ const styles = {
     flexWrap: "wrap",
     alignItems: "center",
     marginBottom: "2rem",
+    lineHeight: 0,             // eliminar espacio extra debajo de imagen
   },
   heroText: { flex: "1 1 300px" },
   imageWrapper: {
@@ -179,8 +182,19 @@ const styles = {
     overflow: "hidden",
     borderRadius: 16,
     boxShadow: "0 6px 14px rgba(0,0,0,0.15)",
+    display: "flex",
+    lineHeight: 0,             // elimina espacio blanco debajo imagen
   },
-  heroImage: { width: "100%", height: "100%", objectFit: "cover" },
+  heroImage: {
+    width: "100%",
+    height: "auto",            // importante, para no forzar altura al 100%
+    objectFit: "cover",
+    borderRadius: 16,
+    boxShadow: "0 6px 14px rgba(0, 0, 0, 0.15)",
+    margin: 0,
+    padding: 0,
+    display: "block",          // evita línea blanca por comportamiento inline
+  },
   infoSection: {
     backgroundColor: "#e1bee7",
     padding: "2rem",
@@ -204,8 +218,6 @@ const styles = {
     textAlign: "center",
   },
   cardIcon: { fontSize: "3rem", marginBottom: "0.5rem" },
-
-  // FOOTER FINAL
   footerBottom: {
     backgroundColor: "#ce996dff",
     color: "white",
