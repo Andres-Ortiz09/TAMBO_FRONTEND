@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/users";
+const API_URL = "https://tambo-backend.onrender.com/users";
 
 export const getAllUsers = async (token) => {
   const response = await axios.get(API_URL, {
