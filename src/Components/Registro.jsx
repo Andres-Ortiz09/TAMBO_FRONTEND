@@ -10,42 +10,54 @@ function Registro() {
     lastName: '',
     email: '',
     password: '',
+    confirmPassword: '',
     address: '',
     phone: ''
   });
+
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
+    // Validaciones por campo en tiempo real
     if (name === 'firstName' || name === 'lastName') {
-      if (/^[A-Za-z\s]*$/.test(value)) {
-        setForm({ ...form, [name]: value });
-      }
-      return;
+      const soloLetras = value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '');
+      setForm({ ...form, [name]: soloLetras });
+    } else if (name === 'phone') {
+      const soloNumeros = value.replace(/\D/g, '').slice(0, 9);
+      setForm({ ...form, [name]: soloNumeros });
+    } else {
+      setForm({ ...form, [name]: value });
     }
 
-    if (name === 'phone') {
-      if (/^\d{0,9}$/.test(value)) {
-        setForm({ ...form, [name]: value });
-      }
-      return;
-    }
-
-    setForm({ ...form, [name]: value });
+    setErrors({ ...errors, [name]: '' }); // limpiar error al escribir
   };
 
   const validateForm = () => {
-    const { firstName, lastName, email, password, address, phone } = form;
+    const { firstName, lastName, email, password, confirmPassword, address, phone } = form;
     const newErrors = {};
 
-    if (!/^[A-Za-z\s]+$/.test(firstName)) newErrors.firstName = "El nombre solo debe contener letras";
-    if (!/^[A-Za-z\s]+$/.test(lastName)) newErrors.lastName = "El apellido solo debe contener letras";
-    if (!/^[\w.-]+@[\w.-]+\.\w+$/.test(email)) newErrors.email = "Correo electrónico inválido";
-    if (password.length < 6) newErrors.password = "La contraseña debe tener al menos 6 caracteres";
-    if (!/^\d{9}$/.test(phone)) newErrors.phone = "El teléfono debe tener exactamente 9 dígitos numéricos";
-    if (address.trim().length === 0) newErrors.address = "La dirección no puede estar vacía";
+    if (!firstName.trim()) newErrors.firstName = "El nombre es obligatorio";
+    else if (!/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(firstName)) newErrors.firstName = "Solo letras en el nombre";
+
+    if (!lastName.trim()) newErrors.lastName = "El apellido es obligatorio";
+    else if (!/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(lastName)) newErrors.lastName = "Solo letras en el apellido";
+
+    if (!email.trim()) newErrors.email = "El correo es obligatorio";
+    else if (!/^[\w.-]+@[\w.-]+\.\w+$/.test(email)) newErrors.email = "Correo inválido";
+
+    if (!password.trim()) newErrors.password = "La contraseña es obligatoria";
+    else if (password.length < 6) newErrors.password = "Debe tener al menos 6 caracteres";
+
+    if (!confirmPassword.trim()) newErrors.confirmPassword = "Debe repetir la contraseña";
+    else if (password !== confirmPassword) newErrors.confirmPassword = "Las contraseñas no coinciden";
+
+    if (!address.trim()) newErrors.address = "La dirección es obligatoria";
+
+    if (!phone.trim()) newErrors.phone = "El teléfono es obligatorio";
+    else if (!/^\d{9}$/.test(phone)) newErrors.phone = "Debe tener exactamente 9 dígitos";
 
     return newErrors;
   };
@@ -54,12 +66,17 @@ function Registro() {
     e.preventDefault();
     const validationErrors = validateForm();
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) {
-      return; // stop submit if errors
-    }
+    if (Object.keys(validationErrors).length > 0) return;
 
     try {
-      await register(form);
+      await register({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        password: form.password,
+        address: form.address,
+        phone: form.phone
+      });
       alert('Usuario registrado con éxito');
       navigate('/login');
     } catch (err) {
@@ -73,67 +90,25 @@ function Registro() {
       <form className="registro-formulario" onSubmit={handleSubmit}>
         <h2>Registro</h2>
 
-        <input
-          type="text"
-          name="firstName"
-          placeholder="Nombre"
-          value={form.firstName}
-          onChange={handleChange}
-          required
-        />
+        <input type="text" name="firstName" placeholder="Nombre" value={form.firstName} onChange={handleChange} required />
         {errors.firstName && <p className="error">{errors.firstName}</p>}
 
-        <input
-          type="text"
-          name="lastName"
-          placeholder="Apellido"
-          value={form.lastName}
-          onChange={handleChange}
-          required
-        />
+        <input type="text" name="lastName" placeholder="Apellido" value={form.lastName} onChange={handleChange} required />
         {errors.lastName && <p className="error">{errors.lastName}</p>}
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Correo electrónico"
-          value={form.email}
-          onChange={handleChange}
-          required
-        />
+        <input type="email" name="email" placeholder="Correo electrónico" value={form.email} onChange={handleChange} required />
         {errors.email && <p className="error">{errors.email}</p>}
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Contraseña"
-          value={form.password}
-          onChange={handleChange}
-          required
-        />
+        <input type="password" name="password" placeholder="Contraseña" value={form.password} onChange={handleChange} required />
         {errors.password && <p className="error">{errors.password}</p>}
 
-        <input
-          type="text"
-          name="address"
-          placeholder="Dirección"
-          value={form.address}
-          onChange={handleChange}
-          required
-        />
+        <input type="password" name="confirmPassword" placeholder="Repetir contraseña" value={form.confirmPassword} onChange={handleChange} required />
+        {errors.confirmPassword && <p className="error">{errors.confirmPassword}</p>}
+
+        <input type="text" name="address" placeholder="Dirección" value={form.address} onChange={handleChange} required />
         {errors.address && <p className="error">{errors.address}</p>}
 
-        <input
-          type="tel"
-          name="phone"
-          placeholder="Teléfono"
-          value={form.phone}
-          onChange={handleChange}
-          maxLength="9"
-          pattern="[0-9]*"
-          inputMode="numeric"
-          required
-        />
+        <input type="tel" name="phone" placeholder="Teléfono" value={form.phone} onChange={handleChange} maxLength="9" inputMode="numeric" required />
         {errors.phone && <p className="error">{errors.phone}</p>}
 
         {errors.submit && <p className="error">{errors.submit}</p>}

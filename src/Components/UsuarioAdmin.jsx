@@ -1,128 +1,154 @@
-import React, { useState, useEffect } from 'react';
-import { FaUser, FaEdit, FaTrash, FaPlus } from 'react-icons/fa';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './UsuarioAdmin.css';
+import React, { useState, useEffect } from "react";
+import { FaUser, FaEdit, FaTrash, FaPlus } from "react-icons/fa";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./UsuarioAdmin.css";
+import { getAllUsers, createUser, updateUser, deleteUser } from "../users";
 
 const UsuarioAdmin = () => {
-  const [usuarios, setUsuarios] = useState(() => {
-    return JSON.parse(localStorage.getItem('usuariosTambo')) || [];
-  });
-
+  const [usuarios, setUsuarios] = useState([]);
   const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    phoneNumber: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    repeatPassword: "",
+    address: "",
+    phone: "",
   });
-
   const [editingId, setEditingId] = useState(null);
-  const [mensajeExito, setMensajeExito] = useState('');
+  const [mensajeExito, setMensajeExito] = useState("");
   const [errors, setErrors] = useState({});
+  const token = localStorage.getItem("token");
 
+  // Cargar usuarios desde el backend
   useEffect(() => {
-    localStorage.setItem('usuariosTambo', JSON.stringify(usuarios));
-  }, [usuarios]);
+    if (token) fetchUsers();
+  }, [token]);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
+  const fetchUsers = async () => {
+    try {
+      const data = await getAllUsers(token);
+      setUsuarios(data);
+    } catch (error) {
+      console.error("Error al cargar usuarios:", error);
+    }
   };
 
+  // Validaciones
   const validar = () => {
-    const errores = {};
+    const err = {};
+    if (!form.firstName.trim()) err.firstName = "El nombre es obligatorio";
+    else if (!/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(form.firstName))
+      err.firstName = "Solo letras en el nombre";
 
-    if (!form.firstName.trim()) {
-      errores.firstName = 'Nombre es requerido';
-    } else if (/\d/.test(form.firstName)) {
-      errores.firstName = 'El nombre no puede contener números';
-    }
+    if (!form.lastName.trim()) err.lastName = "El apellido es obligatorio";
+    else if (!/^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/.test(form.lastName))
+      err.lastName = "Solo letras en el apellido";
 
-    if (!form.lastName.trim()) {
-      errores.lastName = 'Apellido es requerido';
-    } else if (/\d/.test(form.lastName)) {
-      errores.lastName = 'El apellido no puede contener números';
-    }
+    if (!form.email.trim()) err.email = "El correo es obligatorio";
+    else if (!/^[\w.-]+@[\w.-]+\.\w+$/.test(form.email))
+      err.email = "Correo inválido";
 
-    if (!form.email.trim()) {
-      errores.email = 'Correo es requerido';
-    } else if (!form.email.endsWith('@gmail.com')) {
-      errores.email = 'El correo debe terminar en @gmail.com';
-    }
+    if (!form.password.trim()) err.password = "La contraseña es obligatoria";
+    else if (form.password.length < 6)
+      err.password = "Debe tener al menos 6 caracteres";
 
-    if (!form.password) {
-      errores.password = 'Contraseña es requerida';
-    } else if (form.password.length < 6) {
-      errores.password = 'Debe tener mínimo 6 caracteres';
-    }
+    if (!form.repeatPassword.trim()) err.repeatPassword = "Debe repetir la contraseña";
+    else if (form.password !== form.repeatPassword)
+      err.repeatPassword = "Las contraseñas no coinciden";
 
-    if (!form.phoneNumber.trim()) {
-      errores.phoneNumber = 'Teléfono es requerido';
-    } else if (!/^\d{9}$/.test(form.phoneNumber)) {
-      errores.phoneNumber = 'Teléfono debe tener exactamente 9 dígitos numéricos';
-    }
+    if (!form.address.trim()) err.address = "La dirección es obligatoria";
 
-    return errores;
+    if (!form.phone.trim()) err.phone = "El teléfono es obligatorio";
+    else if (!/^\d{9}$/.test(form.phone))
+      err.phone = "Debe tener exactamente 9 dígitos numéricos";
+
+    return err;
   };
 
-  const handleSubmit = (e) => {
+  // Crear o actualizar usuario
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const errores = validar();
-    if (Object.keys(errores).length > 0) {
-      setErrors(errores);
-      setMensajeExito('');
+    const errs = validar();
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      setMensajeExito("");
       return;
     }
 
-    if (editingId !== null) {
-      setUsuarios(usuarios.map((u, idx) => (idx === editingId ? form : u)));
+    try {
+      if (editingId) {
+        await updateUser(token, editingId, form);
+        setMensajeExito("Usuario actualizado correctamente");
+      } else {
+        await createUser(token, form);
+        setMensajeExito("Usuario registrado correctamente");
+      }
+      setForm({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        repeatPassword: "",
+        address: "",
+        phone: "",
+      });
       setEditingId(null);
-      setMensajeExito('Usuario actualizado correctamente');
-    } else {
-      setUsuarios([...usuarios, form]);
-      setMensajeExito('Usuario registrado correctamente');
+      setErrors({});
+      fetchUsers();
+    } catch (error) {
+      console.error("Error al guardar usuario:", error);
+      alert("Error al guardar el usuario");
     }
+  };
 
-    setForm({
-      firstName: '',
-      lastName: '',
-      email: '',
-      password: '',
-      phoneNumber: '',
-    });
+  // Editar usuario
+  const handleEdit = (user) => {
+    setForm({ ...user, repeatPassword: user.password });
+    setEditingId(user.id);
+    setMensajeExito("");
     setErrors({});
   };
 
-  const handleEdit = (idx) => {
-    setForm(usuarios[idx]);
-    setEditingId(idx);
-    setErrors({});
-    setMensajeExito('');
-  };
-
-  const handleDelete = (idx) => {
-    if (window.confirm('¿Seguro que quieres eliminar este usuario?')) {
-      setUsuarios(usuarios.filter((_, i) => i !== idx));
-      setMensajeExito('Usuario eliminado');
-      if (editingId === idx) {
-        setEditingId(null);
-        setForm({
-          firstName: '',
-          lastName: '',
-          email: '',
-          password: '',
-          phoneNumber: '',
-        });
-        setErrors({});
+  // Eliminar usuario
+  const handleDelete = async (id) => {
+    if (window.confirm("¿Seguro que deseas eliminar este usuario?")) {
+      try {
+        await deleteUser(token, id);
+        fetchUsers();
+        setMensajeExito("Usuario eliminado correctamente");
+      } catch (error) {
+        alert("Error al eliminar usuario");
       }
     }
+  };
+
+  // Manejo de cambios con validaciones en tiempo real
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "firstName" || name === "lastName") {
+      const soloLetras = value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, "");
+      setForm({ ...form, [name]: soloLetras });
+    } else if (name === "phone") {
+      const soloNumeros = value.replace(/\D/g, "").slice(0, 9);
+      setForm({ ...form, [name]: soloNumeros });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
+
+    setErrors({ ...errors, [name]: "" });
   };
 
   return (
     <>
       <div className="header d-flex justify-content-between align-items-center mb-4">
         <div className="header-left d-flex align-items-center">
-          <img src="https://img.icons8.com/ios-filled/50/000000/cow.png" alt="Logo Tambo" />
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/1077/1077012.png"
+            alt="Logo Tambo"
+            width="40"
+          />
           <h1 className="h4 mb-0 ms-2">Gestión de Usuarios</h1>
         </div>
         <div className="d-flex align-items-center">
@@ -133,7 +159,7 @@ const UsuarioAdmin = () => {
 
       <div className="card shadow-sm">
         <div className="card-body">
-          <h5>{editingId !== null ? 'Editar Usuario' : 'Registrar Usuario'}</h5>
+          <h5>{editingId ? "Editar Usuario" : "Registrar Usuario"}</h5>
           <form onSubmit={handleSubmit} noValidate>
             <div className="row">
               <div className="col-md-6 mb-3">
@@ -141,19 +167,14 @@ const UsuarioAdmin = () => {
                   type="text"
                   name="firstName"
                   value={form.firstName}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-                    setForm({ ...form, firstName: value });
-                    setErrors({ ...errors, firstName: '' });
-                  }}
-                  onKeyPress={(e) => {
-                    if (!/[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(e.key)) e.preventDefault();
-                  }}
+                  onChange={handleChange}
                   placeholder="Nombre"
-                  className={`form-control ${errors.firstName ? 'is-invalid' : ''}`}
+                  className={`form-control ${errors.firstName ? "is-invalid" : ""}`}
                   required
                 />
-                {errors.firstName && <div className="invalid-feedback">{errors.firstName}</div>}
+                {errors.firstName && (
+                  <div className="invalid-feedback">{errors.firstName}</div>
+                )}
               </div>
 
               <div className="col-md-6 mb-3">
@@ -161,22 +182,18 @@ const UsuarioAdmin = () => {
                   type="text"
                   name="lastName"
                   value={form.lastName}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-                    setForm({ ...form, lastName: value });
-                    setErrors({ ...errors, lastName: '' });
-                  }}
-                  onKeyPress={(e) => {
-                    if (!/[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(e.key)) e.preventDefault();
-                  }}
+                  onChange={handleChange}
                   placeholder="Apellido"
-                  className={`form-control ${errors.lastName ? 'is-invalid' : ''}`}
+                  className={`form-control ${errors.lastName ? "is-invalid" : ""}`}
                   required
                 />
-                {errors.lastName && <div className="invalid-feedback">{errors.lastName}</div>}
+                {errors.lastName && (
+                  <div className="invalid-feedback">{errors.lastName}</div>
+                )}
               </div>
-
             </div>
+
+            {/* Fila correo y teléfono */}
             <div className="row">
               <div className="col-md-6 mb-3">
                 <input
@@ -185,11 +202,33 @@ const UsuarioAdmin = () => {
                   value={form.email}
                   onChange={handleChange}
                   placeholder="Correo electrónico"
-                  className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+                  className={`form-control ${errors.email ? "is-invalid" : ""}`}
                   required
                 />
-                {errors.email && <div className="invalid-feedback">{errors.email}</div>}
+                {errors.email && (
+                  <div className="invalid-feedback">{errors.email}</div>
+                )}
               </div>
+
+              <div className="col-md-6 mb-3">
+                <input
+                  type="text"
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  placeholder="Teléfono"
+                  maxLength="9"
+                  className={`form-control ${errors.phone ? "is-invalid" : ""}`}
+                  required
+                />
+                {errors.phone && (
+                  <div className="invalid-feedback">{errors.phone}</div>
+                )}
+              </div>
+            </div>
+
+            {/* Fila contraseña y repetir */}
+            <div className="row">
               <div className="col-md-6 mb-3">
                 <input
                   type="password"
@@ -197,34 +236,58 @@ const UsuarioAdmin = () => {
                   value={form.password}
                   onChange={handleChange}
                   placeholder="Contraseña"
-                  className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+                  className={`form-control ${errors.password ? "is-invalid" : ""}`}
                   required
                 />
-                {errors.password && <div className="invalid-feedback">{errors.password}</div>}
+                {errors.password && (
+                  <div className="invalid-feedback">{errors.password}</div>
+                )}
+              </div>
+
+              <div className="col-md-6 mb-3">
+                <input
+                  type="password"
+                  name="repeatPassword"
+                  value={form.repeatPassword}
+                  onChange={handleChange}
+                  placeholder="Repetir Contraseña"
+                  className={`form-control ${errors.repeatPassword ? "is-invalid" : ""}`}
+                  required
+                />
+                {errors.repeatPassword && (
+                  <div className="invalid-feedback">{errors.repeatPassword}</div>
+                )}
               </div>
             </div>
+
+            {/* Dirección */}
             <div className="mb-3">
               <input
                 type="text"
-                name="phoneNumber"
-                value={form.phoneNumber}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (/^\d{0,9}$/.test(value)) {
-                    setForm({ ...form, phoneNumber: value });
-                    setErrors({ ...errors, phoneNumber: '' });
-                  }
-                }}
-                placeholder="Teléfono"
-                className={`form-control ${errors.phoneNumber ? 'is-invalid' : ''}`}
+                name="address"
+                value={form.address}
+                onChange={handleChange}
+                placeholder="Dirección"
+                className={`form-control ${errors.address ? "is-invalid" : ""}`}
                 required
               />
-              {errors.phoneNumber && <div className="invalid-feedback">{errors.phoneNumber}</div>}
+              {errors.address && (
+                <div className="invalid-feedback">{errors.address}</div>
+              )}
             </div>
+
             <button type="submit" className="btn btn-primary me-2">
-              {editingId !== null ? 'Actualizar' : (<><FaPlus className="me-1" /> Agregar Usuario</>)}
+              {editingId ? "Actualizar" : (
+                <>
+                  <FaPlus className="me-1" /> Agregar Usuario
+                </>
+              )}
             </button>
-            {mensajeExito && <span className="text-success fw-semibold ms-3">{mensajeExito}</span>}
+            {mensajeExito && (
+              <span className="text-success fw-semibold ms-3">
+                {mensajeExito}
+              </span>
+            )}
           </form>
         </div>
       </div>
@@ -241,22 +304,30 @@ const UsuarioAdmin = () => {
                   <th>Nombre</th>
                   <th>Apellido</th>
                   <th>Email</th>
+                  <th>Dirección</th>
                   <th>Teléfono</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {usuarios.map((usuario, idx) => (
-                  <tr key={idx}>
+                {usuarios.map((usuario) => (
+                  <tr key={usuario.id}>
                     <td>{usuario.firstName}</td>
                     <td>{usuario.lastName}</td>
                     <td>{usuario.email}</td>
-                    <td>{usuario.phoneNumber}</td>
+                    <td>{usuario.address}</td>
+                    <td>{usuario.phone}</td>
                     <td>
-                      <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(idx)} title="Editar">
+                      <button
+                        className="btn btn-sm btn-warning me-2"
+                        onClick={() => handleEdit(usuario)}
+                      >
                         <FaEdit />
                       </button>
-                      <button className="btn btn-sm btn-danger" onClick={() => handleDelete(idx)} title="Eliminar">
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleDelete(usuario.id)}
+                      >
                         <FaTrash />
                       </button>
                     </td>

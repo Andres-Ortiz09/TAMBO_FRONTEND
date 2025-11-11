@@ -1,3 +1,29 @@
 .admin-container {
   padding: 2rem;
 }
+/* Espacio entre el input de archivo y la imagen */
+input[type="file"] {
+  margin-bottom: 15px; /* aumenta el espacio debajo del input de archivo */
+}
+
+/* Previsualización de la imagen */
+img {
+  display: block;
+  margin-bottom: 15px; /* espacio entre la imagen y el botón de registrar */
+}
+
+/* Espacio entre el formulario y el botón */
+button[type="submit"] {
+  margin-top: 10px; /* separa un poco el botón del campo de imagen */
+}
+
+
+.card-body form {
+  padding-bottom: 10px;
+}
+
+/* Espacio adicional para mensajes de éxito */
+.text-success {
+  display: block;
+  margin-top: 10px;
+}
