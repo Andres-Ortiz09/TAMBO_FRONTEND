@@ -1,0 +1,89 @@
+.checkout-container {
+  max-width: 500px;
+  margin: 40px auto;
+  background-color: #fdfdff;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 0 15px rgba(128, 0, 128, 0.25);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.checkout-container h2 {
+  color: #6a0dad;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.checkout-form h3 {
+  color: #9b4dca;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.checkout-form input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 14px;
+  border: 1px solid #d1b3ff;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: #ffffff;
+  color: #333;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.checkout-form input:focus {
+  border-color: #6a0dad;
+  box-shadow: 0 0 6px rgba(106, 13, 173, 0.4);
+  outline: none;
+  background-color: #ffffff;
+}
+
+.checkout-botones {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.btn-pagar {
+  background: linear-gradient(135deg, #6a0dad, #9b4dca);
+  color: white;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  flex: 1;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+.btn-pagar:hover {
+  background: linear-gradient(135deg, #5a0ca3, #8721c2);
+}
+
+.btn-cancelar {
+  background-color: #ccc;
+  color: #333;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  flex: 1;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+.btn-cancelar:hover {
+  background-color: #999;
+}
+
+.checkout-mensaje {
+  margin-top: 15px;
+  text-align: center;
+  font-weight: 600;
+  color: #6a0dad;
+}
