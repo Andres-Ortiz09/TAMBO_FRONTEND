@@ -12,6 +12,8 @@ import Registro from './Components/Registro';
 import Dashboard from './Components/Dashboard';
 import ProductosPublicos from './Components/Productos';
 import Carrito from './Components/Carrito';
+import CheckoutForm from './Components/CheckoutForm';
+import Gracias from './Components/Gracias';
 
 const PanelAdmin = () => {
   const [vista, setVista] = useState('dashboard');
@@ -96,6 +98,8 @@ const App = () => {
         <Route path="/productos" element={
           <ProductosPublicos agregarAlCarrito={agregarAlCarrito} />
         } />
+        <Route path="/checkout" element={<CheckoutForm />} />
+        <Route path="/gracias" element={<Gracias />} />
       </Routes>
     </BrowserRouter>
   );
