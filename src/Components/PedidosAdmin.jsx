@@ -1,333 +1,294 @@
-import React, { useState, useEffect, useRef } from 'react'; 
-import logo from '../assets/img/logo-tambo2.png';
-import { FaShoppingCart, FaEdit, FaTrash, FaFilePdf } from 'react-icons/fa';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import './PedidosAdmin.css';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "./PedidosAdmin.css";
 
-const estados = ['Pendiente', 'Entregado'];
+const estados = ["Pendiente", "Entregado"];
 
-const PedidosAdmin = ({ clientes = [], productos = [] }) => {
-  const [pedidos, setPedidos] = useState([]);
+const PedidosAdmin = () => {
   const [form, setForm] = useState({
-    cliente: '',
-    producto: '',
-    cantidad: '',
-    fecha: null,
-    estado: '',
-    direccion: '',
-    telefono: '',
+    pedidoId: null,
+    clienteId: "",
+    nombre: "",
+    apellido: "",
+    direccion: "",
+    telefono: "",
+    productoId: "",
+    cantidad: "",
+    fecha: "",
+    estado: ""
   });
-  const [editingId, setEditingId] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [mensajeExito, setMensajeExito] = useState('');
 
-  const tablaRef = useRef(null);
-  const logoBase64Ref = useRef('');
+  const [productos, setProductos] = useState([]);
+  const [pedidos, setPedidos] = useState([]);
+  const [clienteValido, setClienteValido] = useState(false);
+  const [mensaje, setMensaje] = useState("");
 
   useEffect(() => {
-    const img = new Image();
-    img.src = logo;
-    img.crossOrigin = 'Anonymous';
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      logoBase64Ref.current = canvas.toDataURL('image/png');
-    };
-
-    const guardados = JSON.parse(localStorage.getItem('pedidosTambo')) || [];
-    guardados.forEach(p => { if (p.fecha) p.fecha = new Date(p.fecha); });
-    setPedidos(guardados);
-
-    window.html2canvas = html2canvas;
+    cargarProductos();
+    cargarPedidos();
   }, []);
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: '' });
+  const cargarProductos = async () => {
+    try {
+      const res = await axios.get("http://localhost:8080/api/products");
+      setProductos(res.data);
+    } catch (err) {
+      console.error("Error al cargar productos", err);
+    }
   };
 
-  const validar = () => {
-    const errores = {};
-    if (!form.cliente) errores.cliente = 'Cliente es requerido';
-    if (!form.producto) errores.producto = 'Producto es requerido';
-    if (!form.cantidad.toString().trim()) errores.cantidad = 'Cantidad es requerida';
-    else if (Number(form.cantidad) <= 0)
-      errores.cantidad = 'Cantidad inválida';
-    if (!form.fecha) errores.fecha = 'Fecha es requerida';
-    if (!form.estado) errores.estado = 'Estado es requerido';
-    if (!form.direccion.trim()) errores.direccion = 'Dirección es requerida';
-    if (!form.telefono.trim()) errores.telefono = 'Teléfono es requerido';
-    return errores;
-  };
+  const cargarPedidos = async () => {
+  try {
+    const token = localStorage.getItem("token");
+    const res = await axios.get("http://localhost:8080/api/pedidos/admin/todos", {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    setPedidos(res.data);
+    console.log("Pedidos recibidos:", res.data);
+  } catch (err) {
+    console.error("Error al cargar pedidos", err);
+  }
+};
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const errores = validar();
-    if (Object.keys(errores).length > 0) {
-      setErrors(errores);
-      setMensajeExito('');
+
+  const buscarCliente = async (id) => {
+    if (!id) {
+      setClienteValido(false);
+      setForm((prev) => ({
+        ...prev,
+        nombre: "",
+        apellido: "",
+        direccion: "",
+        telefono: ""
+      }));
       return;
     }
 
-    const formData = { ...form };
+    try {
+      const res = await axios.get(`http://localhost:8080/users/public/${id}`);
+      const cliente = res.data;
+      setForm((prev) => ({
+        ...prev,
+        nombre: cliente.firstName,
+        apellido: cliente.lastName,
+        direccion: cliente.address,
+        telefono: cliente.phone
+      }));
+      setClienteValido(true);
+      setMensaje("");
+    } catch (err) {
+      console.error("Cliente no encontrado", err);
+      setClienteValido(false);
+      setMensaje("Cliente no registrado");
+    }
+  };
 
-    if (editingId !== null) {
-      const nuevosPedidos = pedidos.map((p, idx) => (idx === editingId ? formData : p));
-      setPedidos(nuevosPedidos);
-      localStorage.setItem('pedidosTambo', JSON.stringify(nuevosPedidos));
-      setEditingId(null);
-      setMensajeExito('Pedido actualizado correctamente');
-    } else {
-      const nuevosPedidos = [...pedidos, formData];
-      setPedidos(nuevosPedidos);
-      localStorage.setItem('pedidosTambo', JSON.stringify(nuevosPedidos));
-      setMensajeExito('Pedido registrado correctamente');
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "telefono" && value.length > 9) return;
+
+    if (name === "fecha") {
+      const hoy = new Date().toISOString().split("T")[0];
+      if (value < hoy) {
+        setMensaje("La fecha no puede ser anterior a hoy");
+        return;
+      } else {
+        setMensaje("");
+      }
     }
 
-    setForm({
-      cliente: '',
-      producto: '',
-      cantidad: '',
-      fecha: null,
-      estado: '',
-      direccion: '',
-      telefono: '',
-    });
-    setErrors({});
-  };
+    if (name === "cantidad") {
+      const cantidadNum = parseInt(value, 10);
+      if (cantidadNum <= 0) {
+        setMensaje("La cantidad debe ser mayor que 0");
+        return;
+      }
+      const productoSeleccionado = productos.find(
+        (p) => p.id === parseInt(form.productoId)
+      );
+      if (productoSeleccionado && productoSeleccionado.stock === 0) {
+  setMensaje("Este producto no tiene stock disponible");
+  return;
+}
 
-  const handleEdit = (idx) => {
-    setForm(pedidos[idx]);
-    setEditingId(idx);
-    setErrors({});
-    setMensajeExito('');
-  };
-
-  const handleDelete = (idx) => {
-    if (!window.confirm('¿Estás seguro de eliminar este pedido?')) return;
-    const nuevosPedidos = pedidos.filter((_, i) => i !== idx);
-    setPedidos(nuevosPedidos);
-    localStorage.setItem('pedidosTambo', JSON.stringify(nuevosPedidos));
-    setMensajeExito('Pedido eliminado');
-    if (editingId === idx) setEditingId(null);
-    setForm({
-      cliente: '',
-      producto: '',
-      cantidad: '',
-      fecha: null,
-      estado: '',
-      direccion: '',
-      telefono: '',
-    });
-    setErrors({});
-  };
-
-  const exportarPDF = async () => {
-    if (!tablaRef.current) return;
-
-    const element = document.createElement('div');
-    element.style.width = '800px';
-    element.style.padding = '20px';
-    element.style.backgroundColor = 'white';
-    element.style.position = 'absolute';
-    element.style.left = '-9999px';
-    document.body.appendChild(element);
-
-    if (logoBase64Ref.current) {
-      const imgEl = document.createElement('img');
-      imgEl.src = logoBase64Ref.current;
-      imgEl.style.width = '150px';
-      imgEl.style.display = 'block';
-      imgEl.style.margin = '0 auto 20px auto';
-      element.appendChild(imgEl);
+if (productoSeleccionado && cantidadNum > productoSeleccionado.stock) {
+  setMensaje(
+    `La cantidad no puede superar el stock disponible (${productoSeleccionado.stock})`
+  );
+  return;
+}
+      setMensaje("");
     }
 
-    const titleEl = document.createElement('h2');
-    titleEl.innerText = 'Listado de Pedidos';
-    titleEl.style.textAlign = 'center';
-    titleEl.style.marginBottom = '20px';
-    element.appendChild(titleEl);
+    if (
+      ["nombre", "apellido", "direccion", "telefono"].includes(name) &&
+      clienteValido
+    ) {
+      return;
+    }
 
-    const tablaClon = tablaRef.current.cloneNode(true);
-    const botones = tablaClon.querySelectorAll('button');
-    botones.forEach(b => b.remove());
-    element.appendChild(tablaClon);
+    setForm({ ...form, [name]: value });
+
+    if (name === "clienteId") buscarCliente(value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!clienteValido) {
+      setMensaje("No se puede registrar pedido: cliente no válido");
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setMensaje("No estás autenticado. Inicia sesión primero.");
+      return;
+    }
 
     try {
-      const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'pt', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const margin = 20;
-      const imgWidth = pdfWidth - margin * 2;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
-      pdf.save('pedidos.pdf');
+      const payload = {
+        clienteId: form.clienteId,
+        productosIds: [form.productoId],
+        cantidades: [form.cantidad],
+        fecha: form.fecha,
+        estado: form.estado
+      };
+
+      if (form.pedidoId) {
+        await axios.put(`http://localhost:8080/api/pedidos/admin/${form.pedidoId}`, payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setMensaje("Pedido actualizado");
+      } else {
+        await axios.post("http://localhost:8080/api/pedidos", payload, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setMensaje("Pedido registrado");
+      }
+
+      setForm({
+        pedidoId: null,
+        clienteId: "",
+        nombre: "",
+        apellido: "",
+        direccion: "",
+        telefono: "",
+        productoId: "",
+        cantidad: "",
+        fecha: "",
+        estado: ""
+      });
+      setClienteValido(false);
+      cargarPedidos();
     } catch (err) {
-      console.error(err);
-      alert('Error generando PDF');
-    } finally {
-      document.body.removeChild(element);
+      console.error("Error al guardar pedido", err);
+      setMensaje("Error al guardar");
     }
+  };
+
+  const editarPedido = (pedido) => {
+    setForm({
+      pedidoId: pedido.id,
+      clienteId: pedido.user.id,
+      nombre: pedido.user.firstName,
+      apellido: pedido.user.lastName,
+      direccion: pedido.user.address,
+      telefono: pedido.user.phone,
+      productoId: pedido.items[0].producto.id,
+      cantidad: pedido.items[0].cantidad,
+      fecha: pedido.fechaPedido.split("T")[0],
+      estado: pedido.estado
+    });
+    setClienteValido(true);
+    setMensaje("");
+  };
+
+  const cancelarEdicion = () => {
+    setForm({
+      pedidoId: null,
+      clienteId: "",
+      nombre: "",
+      apellido: "",
+      direccion: "",
+      telefono: "",
+      productoId: "",
+      cantidad: "",
+      fecha: "",
+      estado: ""
+    });
+    setClienteValido(false);
+    setMensaje("Edición cancelada");
   };
 
   return (
-    <>
-      <div className="header d-flex justify-content-between align-items-center mb-4">
-        <div className="header-left d-flex align-items-center">
-          <FaShoppingCart size={40} className="me-2" />
-          <h1 className="h4 mb-0 ms-2">Gestión de Pedidos</h1>
+    <div className="pedidos-container">
+      <h2>{form.pedidoId ? "Editar Pedido" : "Registrar Pedido"}</h2>
+      <form
+        className={`form-card ${form.pedidoId ? "edit-mode" : ""}`}
+        onSubmit={handleSubmit}
+      >
+        <input name="clienteId" value={form.clienteId} onChange={handleChange} placeholder="ID Cliente" required />
+        <input name="nombre" value={form.nombre} placeholder="Nombre" disabled />
+        <input name="apellido" value={form.apellido} placeholder="Apellido" disabled />
+        <input name="direccion" value={form.direccion} placeholder="Dirección" disabled />
+        <input name="telefono" value={form.telefono} placeholder="Teléfono" disabled />
+        <select name="productoId" value={form.productoId} onChange={handleChange} required>
+          <option value="">Seleccione un producto</option>
+          {productos.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name} (Stock: {p.stock})
+            </option>
+          ))}
+        </select>
+        <input name="cantidad" type="number" value={form.cantidad} onChange={handleChange} placeholder="Cantidad" required />
+        <input name="fecha" type="date" value={form.fecha} onChange={handleChange} min={new Date().toISOString().split("T")[0]} required className="campo-fecha" onClick={(e) => e.target.showPicker()} onKeyDown={(e) => e.preventDefault()} />
+        <select name="estado" value={form.estado} onChange={handleChange} required>
+          <option value="">Estado</option>
+          {estados.map((e) => (
+            <option key={e} value={e}>{e}</option>
+          ))}
+        </select>
+        <div>
+          <button type="submit" className={form.pedidoId ? "btn-update" : "btn-primary"}>
+            {form.pedidoId ? "Actualizar Pedido" : "Registrar Pedido"}
+          </button>
+          {form.pedidoId && (
+            <button type="button" className="btn-cancel-edit" onClick={cancelarEdicion}>
+              Cancelar edición
+            </button>
+          )}
         </div>
-        <div className="d-flex align-items-center">
-          <span>Administrador</span>
-        </div>
+      </form>
+
+      {mensaje && <p className="pedidos-message">{mensaje}</p>}
+
+      <h3>Mis Pedidos</h3>
+      <div className="pedidos-table-wrapper">
+        <table className="pedidos-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pedidos.map((p) => (
+              <tr key={p.id}>
+                <td>{p.id}</td>
+                <td>{p.estado}</td>
+                <td>{p.fechaPedido}</td>
+                <td>
+                  <button className="btn-edit" onClick={() => editarPedido(p)}>Editar</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      <div className="admin-container">
-        <button className="btn btn-danger mb-3" onClick={exportarPDF}>
-          <FaFilePdf /> Descargar PDF
-        </button>
-
-        <div className="card">
-          <div className="card-body">
-            <h5>{editingId !== null ? 'Editar Pedido' : 'Registrar Pedido'}</h5>
-            <form onSubmit={handleSubmit} noValidate>
-              <select
-                name="cliente"
-                value={form.cliente}
-                onChange={handleChange}
-                className={`form-control mb-2 ${errors.cliente ? 'is-invalid' : ''}`}
-              >
-                <option value="">Seleccione un cliente</option>
-                {clientes.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
-              </select>
-              {errors.cliente && <div className="invalid-feedback">{errors.cliente}</div>}
-
-              <select
-                name="producto"
-                value={form.producto}
-                onChange={handleChange}
-                className={`form-control mb-2 ${errors.producto ? 'is-invalid' : ''}`}
-              >
-                <option value="">Seleccione un producto</option>
-                {productos.map(p => <option key={p.id} value={p.nombre}>{p.nombre}</option>)}
-              </select>
-              {errors.producto && <div className="invalid-feedback">{errors.producto}</div>}
-
-              <input
-                type="number"
-                name="cantidad"
-                value={form.cantidad}
-                onChange={handleChange}
-                placeholder="Cantidad"
-                className={`form-control mb-2 ${errors.cantidad ? 'is-invalid' : ''}`}
-                min="1"
-              />
-              {errors.cantidad && <div className="invalid-feedback">{errors.cantidad}</div>}
-
-              <label>Fecha:</label>
-              <DatePicker
-                selected={form.fecha}
-                onChange={(date) => setForm({ ...form, fecha: date })}
-                className={`form-control mb-2 ${errors.fecha ? 'is-invalid' : ''}`}
-                placeholderText="Seleccione una fecha"
-                dateFormat="yyyy/MM/dd"
-              />
-              {errors.fecha && <div className="invalid-feedback d-block">{errors.fecha}</div>}
-
-              <select
-                name="estado"
-                value={form.estado}
-                onChange={handleChange}
-                className={`form-control mb-2 ${errors.estado ? 'is-invalid' : ''}`}
-              >
-                <option value="">Seleccione un estado</option>
-                {estados.map(est => <option key={est} value={est}>{est}</option>)}
-              </select>
-              {errors.estado && <div className="invalid-feedback">{errors.estado}</div>}
-
-              <input
-                type="text"
-                name="direccion"
-                value={form.direccion}
-                onChange={handleChange}
-                placeholder="Dirección"
-                className={`form-control mb-2 ${errors.direccion ? 'is-invalid' : ''}`}
-              />
-              {errors.direccion && <div className="invalid-feedback">{errors.direccion}</div>}
-
-              <input
-                type="text"
-                name="telefono"
-                value={form.telefono}
-                onChange={handleChange}
-                placeholder="Teléfono"
-                className={`form-control mb-2 ${errors.telefono ? 'is-invalid' : ''}`}
-                maxLength="9"
-              />
-              {errors.telefono && <div className="invalid-feedback">{errors.telefono}</div>}
-
-              <button type="submit" className="btn btn-primary me-2">
-                {editingId !== null ? 'Actualizar' : 'Registrar'}
-              </button>
-              {mensajeExito && <span className="text-success ms-3">{mensajeExito}</span>}
-            </form>
-          </div>
-        </div>
-
-        <div className="card mt-4">
-          <div className="card-body">
-            <h5>Lista de Pedidos</h5>
-            {pedidos.length === 0 ? (
-              <p>No hay pedidos registrados.</p>
-            ) : (
-              <table ref={tablaRef} className="table table-hover">
-                <thead>
-                  <tr>
-                    <th>Cliente</th>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Fecha</th>
-                    <th>Estado</th>
-                    <th>Dirección</th>
-                    <th>Teléfono</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pedidos.map((pedido, idx) => (
-                    <tr key={idx}>
-                      <td>{pedido.cliente}</td>
-                      <td>{pedido.producto}</td>
-                      <td>{pedido.cantidad}</td>
-                      <td>{pedido.fecha ? new Date(pedido.fecha).toLocaleDateString() : ''}</td>
-                      <td>{pedido.estado}</td>
-                      <td>{pedido.direccion}</td>
-                      <td>{pedido.telefono}</td>
-                      <td>
-                        <button className="btn btn-warning btn-sm me-2" onClick={() => handleEdit(idx)}>
-                          <FaEdit /> Editar
-                        </button>
-                        <button className="btn btn-danger btn-sm" onClick={() => handleDelete(idx)}>
-                          <FaTrash /> Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-      </div>
-    </>
+    </div>
   );
 };
 
