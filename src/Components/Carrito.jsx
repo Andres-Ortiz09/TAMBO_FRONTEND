@@ -1,11 +1,16 @@
 // Carrito.jsx
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import './Carrito.css';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import "./Carrito.css";
 
 const Carrito = ({ carrito, actualizarCantidad, eliminarDelCarrito }) => {
   const navigate = useNavigate();
   const total = carrito.reduce((acc, item) => acc + item.price * item.cantidad, 0);
+
+  const irAComprar = () => {
+    localStorage.setItem("carritoParaPago", JSON.stringify(carrito));
+    navigate("/checkout");
+  };
 
   return (
     <section className="carrito-seccion">
@@ -30,18 +35,32 @@ const Carrito = ({ carrito, actualizarCantidad, eliminarDelCarrito }) => {
                 {carrito.map((item) => (
                   <tr key={item.id}>
                     <td>{item.name}</td>
-                    <td>{item.description || '—'}</td>
+                    <td>{item.description || "—"}</td>
                     <td>S/.{item.price.toFixed(2)}</td>
                     <td>
                       <div className="cantidad-controles">
-                        <button onClick={() => actualizarCantidad(item.id, item.cantidad - 1)} disabled={item.cantidad <= 1}>−</button>
+                        <button
+                          onClick={() => actualizarCantidad(item.id, item.cantidad - 1)}
+                          disabled={item.cantidad <= 1}
+                        >
+                          −
+                        </button>
                         <span>{item.cantidad}</span>
-                        <button onClick={() => actualizarCantidad(item.id, item.cantidad + 1)}>+</button>
+                        <button
+                          onClick={() => actualizarCantidad(item.id, item.cantidad + 1)}
+                        >
+                          +
+                        </button>
                       </div>
                     </td>
                     <td>S/.{(item.price * item.cantidad).toFixed(2)}</td>
                     <td>
-                      <button className="btn-eliminar" onClick={() => eliminarDelCarrito(item.id)}>Eliminar</button>
+                      <button
+                        className="btn-eliminar"
+                        onClick={() => eliminarDelCarrito(item.id)}
+                      >
+                        Eliminar
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -49,8 +68,12 @@ const Carrito = ({ carrito, actualizarCantidad, eliminarDelCarrito }) => {
             </table>
             <div className="carrito-total">Total: S/.{total.toFixed(2)}</div>
             <div className="carrito-acciones">
-              <button className="btn-volver" onClick={() => navigate(-1)}>Volver</button>
-              <button className="btn-comprar">Comprar</button>
+              <button className="btn-volver" onClick={() => navigate(-1)}>
+                Volver
+              </button>
+              <button className="btn-comprar" onClick={irAComprar}>
+                Comprar
+              </button>
             </div>
           </>
         )}
