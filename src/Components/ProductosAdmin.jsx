@@ -21,7 +21,6 @@ const ProductosAdmin = () => {
   const [mensajeExito, setMensajeExito] = useState('');
   const [errors, setErrors] = useState({});
 
-  // Cargar productos
   useEffect(() => {
     cargarProductos();
   }, []);
@@ -29,6 +28,7 @@ const ProductosAdmin = () => {
   const cargarProductos = async () => {
     try {
       const res = await API.get('/products');
+      console.log("Productos cargados:", res.data);
       setProductos(res.data);
     } catch (error) {
       console.error('Error al cargar productos:', error);
@@ -132,7 +132,6 @@ const ProductosAdmin = () => {
       console.error('Error al eliminar producto:', error);
     }
   };
-
   return (
     <>
       <div className="header d-flex justify-content-between align-items-center mb-4">
