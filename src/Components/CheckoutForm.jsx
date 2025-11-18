@@ -98,7 +98,7 @@ const CheckoutForm = () => {
         estado: "Pendiente",
       };
 
-      await axios.post("http://localhost:8080/api/pedidos", payload, {
+      await axios.post("https://tambo-backend.onrender.com/api/pedidos", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
