@@ -164,15 +164,15 @@ const Dashboard = () => {
       <div style={gridStyle}>
         <div style={cardStyle}>
           <span style={{ fontSize: 18, color: '#888' }}>Total Ventas</span>
-          <span style={{ fontSize: 36, fontWeight: 700, color: '#232946' }}>{totalVentas}</span>
+          <span style={{ fontSize: 36, fontWeight: 700, color: '#232946' }}>{20}</span>
         </div>
         <div style={cardStyle}>
           <span style={{ fontSize: 18, color: '#888' }}>Total Pedidos</span>
-          <span style={{ fontSize: 36, fontWeight: 700, color: '#232946' }}>{totalPedidos}</span>
+          <span style={{ fontSize: 36, fontWeight: 700, color: '#232946' }}>{10}</span>
         </div>
         <div style={cardStyle}>
           <span style={{ fontSize: 18, color: '#888' }}>Productos Registrados</span>
-          <span style={{ fontSize: 36, fontWeight: 700, color: '#232946' }}>{totalProductos}</span>
+          <span style={{ fontSize: 36, fontWeight: 700, color: '#232946' }}>{35}</span>
         </div>
       </div>
 

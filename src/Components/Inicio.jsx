@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from 'react-router-dom';
 import logo from '../assets/img/logo-tambo2.png';
 import { getCurrentUser } from '../api';
+import Productos from "./Productos";
 
-export default function Inicio() {
+export default function Inicio({ carrito, agregarAlCarrito, eliminarDelCarrito, actualizarCantidad }) {
   const [user, setUser] = useState(null);
   const [animate, setAnimate] = useState(false);
   const navigate = useNavigate();
@@ -35,11 +36,7 @@ export default function Inicio() {
     navigate('/login');
   };
 
-  const benefits = [
-    { icon: "🛒", title: "Variedad de productos", description: "Encuentra todo lo que necesitas para tu hogar." },
-    { icon: "💰", title: "Precios competitivos", description: "Ofertas y promociones todos los días." },
-    { icon: "🚚", title: "Entrega rápida", description: "Recibe tus productos cómodamente en tu hogar." },
-  ];
+  const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
 
   return (
     <div style={styles.container}>
@@ -56,58 +53,20 @@ export default function Inicio() {
             </>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <span style={styles.welcome}>Bienvenido, {user.firstName || user.name || "Usuario"}</span>
+              <div style={styles.welcomeWrapper}>
+                <span style={styles.welcome}>Bienvenido, {user.firstName || user.name || "Usuario"}</span>
+                <div style={styles.carritoWrapper} onClick={() => navigate('/carrito')} title="Ir al carrito">
+                  <span style={styles.carritoIcon}>🛒</span>
+                  {totalItems > 0 && <span style={styles.badge}>{totalItems}</span>}
+                </div>
+              </div>
               <button style={styles.btnLogout} onClick={handleLogout}>Cerrar Sesión</button>
             </div>
           )}
         </nav>
       </header>
 
-      <main style={styles.main}>
-        <section style={styles.heroSection}>
-          <div style={styles.heroText}>
-            <h2>Compra productos de Tambo con confianza</h2>
-            <p>Tu minimarket online para todas tus necesidades diarias.</p>
-          </div>
-          <div style={styles.imageWrapper}>
-            <img
-              src="https://d1h08qwp2t1dnu.cloudfront.net/assets/media/es_pe/images/flyergibs/crop_68ea6ac5-4248-4bf3-86d3-004f0ad300c7_20251011163343_webp.webp"
-              alt="Minimarket"
-              style={styles.heroImage}
-            />
-          </div>
-        </section>
-
-        <section style={styles.infoSection}>
-          <h3>¿Por qué elegir Tambo?</h3>
-          <p>Conectamos a nuestros clientes con productos de calidad y variedad.</p>
-          <p>Disfruta de la mejor experiencia de compra en tu minimarket de confianza.</p>
-        </section>
-
-        <section style={styles.infoSection}>
-          <h3>Compromiso y conveniencia</h3>
-          <p>Ofrecemos precios justos y entregas rápidas.</p>
-          <p>Siempre pensamos en tu comodidad y satisfacción.</p>
-        </section>
-
-        <section style={styles.cardsSection}>
-          {benefits.map(({ icon, title, description }, i) => (
-            <div
-              key={i}
-              style={{
-                ...styles.card,
-                opacity: animate ? 1 : 0,
-                transform: animate ? "translateY(0)" : "translateY(30px)",
-                transition: `all 0.6s ease ${(i + 1) * 0.3}s`,
-              }}
-            >
-              <div style={styles.cardIcon}>{icon}</div>
-              <h3>{title}</h3>
-              <p>{description}</p>
-            </div>
-          ))}
-        </section>
-      </main>
+      <Productos agregarAlCarrito={agregarAlCarrito} />
 
       <footer style={styles.footerBottom}>
         <p>© 2025 Tambo. Todos los derechos reservados.</p>
@@ -124,9 +83,6 @@ const styles = {
     minHeight: "100vh",
     backgroundColor: "#f3e5f5",
     color: "#4a148c",
-    margin: 0,
-    padding: 0,
-    boxSizing: "border-box",
   },
   header: {
     display: "flex",
@@ -144,7 +100,7 @@ const styles = {
   logotambo: {
     height: "50px",
     width: "auto",
-    objectFit: "contain",
+    objectFit: "contain"
   },
   nav: { display: "flex", alignItems: "center", gap: "1rem" },
   navLink: {
@@ -166,58 +122,32 @@ const styles = {
     fontWeight: 600,
     cursor: "pointer",
   },
-  main: { flexGrow: 1, padding: "2rem" },
-  heroSection: {
-    display: "flex",
-    gap: "2rem",
-    flexWrap: "wrap",
-    alignItems: "center",
-    marginBottom: "2rem",
-    lineHeight: 0,             // eliminar espacio extra debajo de imagen
+  carritoWrapper: {
+    position: 'relative',
+    display: 'inline-block',
+    marginLeft: '0.5rem',
   },
-  heroText: { flex: "1 1 300px" },
-  imageWrapper: {
-    flex: "1 1 400px",
-    maxWidth: 500,
-    overflow: "hidden",
-    borderRadius: 16,
-    boxShadow: "0 6px 14px rgba(0,0,0,0.15)",
-    display: "flex",
-    lineHeight: 0,             // elimina espacio blanco debajo imagen
+
+  carritoIcon: {
+    fontSize: '1.8rem',
+    color: 'white',
+    cursor: 'pointer',
+    transition: 'transform 0.2s ease',
   },
-  heroImage: {
-    width: "100%",
-    height: "auto",            // importante, para no forzar altura al 100%
-    objectFit: "cover",
-    borderRadius: 16,
-    boxShadow: "0 6px 14px rgba(0, 0, 0, 0.15)",
-    margin: 0,
-    padding: 0,
-    display: "block",          // evita línea blanca por comportamiento inline
+
+  badge: {
+    position: 'absolute',
+    top: '-6px',
+    right: '-10px',
+    backgroundColor: '#ff5252',
+    color: 'white',
+    borderRadius: '50%',
+    padding: '2px 6px',
+    fontSize: '0.7rem',
+    fontWeight: 'bold',
+    boxShadow: '0 0 0 2px #7b1fa2', 
   },
-  infoSection: {
-    backgroundColor: "#e1bee7",
-    padding: "2rem",
-    borderRadius: "16px",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-    marginBottom: "2rem",
-  },
-  cardsSection: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "2rem",
-    flexWrap: "wrap",
-  },
-  card: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: "1.5rem",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-    flex: "1 1 220px",
-    maxWidth: 280,
-    textAlign: "center",
-  },
-  cardIcon: { fontSize: "3rem", marginBottom: "0.5rem" },
+
   footerBottom: {
     backgroundColor: "#ce996dff",
     color: "white",
