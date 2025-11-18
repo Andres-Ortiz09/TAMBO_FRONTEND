@@ -21,7 +21,7 @@ const PedidosAdmin = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        "http://localhost:8080/api/pedidos/admin/todos",
+        "https://tambo-backend.onrender.com/api/pedidos/admin/todos",
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setPedidos(res.data);
@@ -54,7 +54,7 @@ const PedidosAdmin = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.put(
-        `http://localhost:8080/api/pedidos/admin/${modalEstado.id}/estado`,
+        `https://tambo-backend.onrender.com/api/pedidos/admin/${modalEstado.id}/estado`,
         { estado: nuevoEstado },
         { headers: { Authorization: `Bearer ${token}` } }
       );
