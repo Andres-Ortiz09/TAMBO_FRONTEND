@@ -1,106 +1,74 @@
-import React, { useEffect, useState } from 'react';
-import API from '../api';
-import './Productos.css';
+package com.proy.utp.backend_tambo.model;
 
-const categorias = ['Todos', 'Bebidas', 'Comidas', 'Snacks', 'Licores'];
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
-const Productos = ({ agregarAlCarrito }) => {
-  const [productos, setProductos] = useState([]);
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todos');
-  const [paginaActual, setPaginaActual] = useState(1);
-  const productosPorPagina = 12;
+@Entity
+@Table(name = "products")
+public class Product {
 
-  useEffect(() => {
-    const fetchProductos = async () => {
-      try {
-        const res = await API.get('/products');
-        setProductos(res.data);
-      } catch (error) {
-        console.error('Error al cargar productos:', error);
-      }
-    };
-    fetchProductos();
-  }, []);
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  const productosFiltrados =
-    categoriaSeleccionada === 'Todos'
-      ? productos
-      : productos.filter((p) => p.category === categoriaSeleccionada);
+    @NotBlank(message = "Nombre es obligatorio")
+    @Size(max = 100, message = "El nombre debe tener como máximo 100 caracteres")
+    private String name;
 
-  const totalPaginas = Math.ceil(productosFiltrados.length / productosPorPagina);
-  const indiceInicio = (paginaActual - 1) * productosPorPagina;
-  const productosPagina = productosFiltrados.slice(indiceInicio, indiceInicio + productosPorPagina);
+    @NotNull(message = "El precio es obligatorio")
+    @DecimalMin(value = "0.01", message = "El precio debe ser mayor que 0")
+    private Double price;
 
-  const cambiarPagina = (num) => {
-    if (num >= 1 && num <= totalPaginas) {
-      setPaginaActual(num);
+    @NotNull(message = "El stock es obligatorio")
+    @Min(value = 0, message = "El stock no puede ser negativo")
+    private Integer stock;
+
+    @NotBlank(message = "La categoría es obligatoria")
+    private String category;
+
+    // Mantener STRING: funciona con tu frontend
+    @Lob
+    @Column(columnDefinition = "TEXT")
+    @JsonIgnore  // ← CLAVE: oculta imagen SOLO en pedidos
+    private String image;
+
+    @NotBlank(message = "La descripción es obligatoria")
+    @Size(max = 255, message = "La descripción debe tener como máximo 255 caracteres")
+    private String description;
+
+    public Product() {}
+
+    public Product(Long id, String name, Double price, Integer stock, String category, String image, String description) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
+        this.stock = stock;
+        this.category = category;
+        this.image = image;
+        this.description = description;
     }
-  };
 
-  return (
-    <div className="productos-layout">
-      <aside className="sidebar-categorias">
-        <h2>Categorías</h2>
-        <ul>
-          {['Todos', 'Bebidas', 'Comidas', 'Snacks', 'Licores'].map((cat) => (
-            <li
-              key={cat}
-              className={cat === categoriaSeleccionada ? 'categoria-activa' : ''}
-              onClick={() => {
-                setCategoriaSeleccionada(cat);
-                setPaginaActual(1); // reiniciar paginación al cambiar categoría
-              }}
-            >
-              {cat}
-            </li>
-          ))}
-        </ul>
-      </aside>
+    // Getters y Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-      <div className="productos-publicos-container">
-        <h1 className="productos-publicos-title">Nuestros Productos</h1>
-        {productosPagina.length === 0 ? (
-          <p>No hay productos en esta categoría.</p>
-        ) : (
-          <>
-            <div className="productos-horizontal-scroll">
-              {productosPagina.map((p) => (
-                <div key={p.id} className="producto-card-horizontal">
-                  <div className="producto-img-container">
-                    <img src={p.image} alt={p.name} className="producto-img" />
-                    {p.promo && <span className="producto-promo">{p.promo}</span>}
-                  </div>
-                  <div className="producto-info">
-                    <h3 className="producto-nombre" title={p.name}>{p.name}</h3>
-                    <p className="producto-descripcion" title={p.description}>{p.description}</p>
-                    <div className="producto-precio-carrito">
-                      <span className="producto-precio">S/.{p.price}</span>
-                      <button className="btn-agregar" onClick={() => agregarAlCarrito(p)}>
-                        Agregar al carrito
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-            <div className="paginacion">
-              {[...Array(totalPaginas)].map((_, i) => (
-                <button
-                  key={i + 1}
-                  className={`pagina-btn ${paginaActual === i + 1 ? 'pagina-activa' : ''}`}
-                  onClick={() => cambiarPagina(i + 1)}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
+    public Double getPrice() { return price; }
+    public void setPrice(Double price) { this.price = price; }
 
+    public Integer getStock() { return stock; }
+    public void setStock(Integer stock) { this.stock = stock; }
 
-export default Productos;
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public String getImage() { return image; }
+    public void setImage(String image) { this.image = image; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+}
+
