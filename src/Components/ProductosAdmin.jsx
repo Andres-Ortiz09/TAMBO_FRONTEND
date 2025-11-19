@@ -28,35 +28,47 @@ const ProductosAdmin = () => {
   const cargarProductos = async () => {
     try {
       const res = await API.get('/products');
+      console.log("Productos cargados:", res.data);
       setProductos(res.data);
     } catch (error) {
       console.error('Error al cargar productos:', error);
     }
   };
 
+  // Validaciones frontend
   const validar = () => {
     const newErrors = {};
+
     if (!form.name.trim()) newErrors.name = 'El nombre es obligatorio';
     else if (form.name.length > 100) newErrors.name = 'Máximo 100 caracteres';
+
     if (!form.price) newErrors.price = 'El precio es obligatorio';
     else if (isNaN(form.price) || Number(form.price) <= 0)
       newErrors.price = 'Debe ser un número positivo';
+
     if (form.stock === '') newErrors.stock = 'El stock es obligatorio';
     else if (!Number.isInteger(Number(form.stock)) || Number(form.stock) < 0)
       newErrors.stock = 'Debe ser un número entero positivo';
+
     if (!form.category) newErrors.category = 'Seleccione una categoría';
+
     if (!form.image) newErrors.image = 'La imagen es obligatoria';
+
     if (!form.description.trim()) newErrors.description = 'La descripción es obligatoria';
     else if (form.description.length > 255)
       newErrors.description = 'Máximo 255 caracteres';
+
     return newErrors;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Bloquear negativos en campos numéricos
     if (name === 'price' || name === 'stock') {
       if (Number(value) < 0) return;
     }
+
     setForm({ ...form, [name]: value });
     setErrors({ ...errors, [name]: '' });
   };
@@ -65,7 +77,6 @@ const ProductosAdmin = () => {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onloadend = () => {
-      // GUARDA LA IMAGEN COMPLETA: "data:image/png;base64,..."
       setForm({ ...form, image: reader.result });
       setErrors({ ...errors, image: '' });
     };
@@ -80,6 +91,7 @@ const ProductosAdmin = () => {
       setMensajeExito('');
       return;
     }
+
     try {
       if (editingId) {
         await API.put(`/products/${editingId}`, form);
@@ -88,6 +100,7 @@ const ProductosAdmin = () => {
         await API.post('/products', form);
         setMensajeExito('Producto registrado correctamente');
       }
+
       setForm({
         name: '',
         price: '',
@@ -114,13 +127,11 @@ const ProductosAdmin = () => {
     try {
       await API.delete(`/products/${id}`);
       setMensajeExito('Producto eliminado correctamente');
-      cargarProducto
-s();
+      cargarProductos();
     } catch (error) {
       console.error('Error al eliminar producto:', error);
     }
   };
-
   return (
     <>
       <div className="header d-flex justify-content-between align-items-center mb-4">
@@ -183,7 +194,9 @@ s();
               >
                 <option value="">Seleccione una categoría</option>
                 {categorias.map((cat) => (
-                  <option key={cat} value={cat}>{cat}</option>
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
                 ))}
               </select>
               {errors.category && <div className="invalid-feedback">{errors.category}</div>}
@@ -215,9 +228,6 @@ s();
                     height: 100,
                     objectFit: 'cover',
                     marginBottom: '10px',
-                    display: 'block',
-                    marginLeft: 'auto',
-                    marginRight: 'auto'
                   }}
                 />
               )}
@@ -255,14 +265,12 @@ s();
                       <td>
                         {producto.image ? (
                           <img
-                            src={producto.image}     // <<<<<< AQUI SE ARREGLA TODO
+                            src={producto.image}
                             alt={producto.name}
                             style={{
                               width: 50,
                               height: 50,
                               objectFit: 'cover',
-                              display: 'block',
-                              margin: '0 auto',
                             }}
                           />
                         ) : (
