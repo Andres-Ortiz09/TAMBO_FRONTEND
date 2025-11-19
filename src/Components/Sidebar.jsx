@@ -1,41 +1,42 @@
 import React, { useEffect, useState } from 'react';
-import { FaHome, FaUsers, FaBoxOpen, FaShoppingCart, FaSignOutAlt, FaUserTie } from 'react-icons/fa';
+import {
+  FaHome,
+  FaUsers,
+  FaBoxOpen,
+  FaShoppingCart,
+  FaSignOutAlt,
+  FaUserTie
+} from 'react-icons/fa';
 import logo from '../assets/img/logo-tambo2.png';
 import { useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 
 const Sidebar = ({ setVista, vista }) => {
   const navigate = useNavigate();
-  const [nombreAdmin, setNombreAdmin] = useState("");
+  const [nombreAdmin, setNombreAdmin] = useState('');
 
-  // Recuperar datos del usuario logueado
   useEffect(() => {
-    const usuario = JSON.parse(localStorage.getItem("registroUsuario"));
+    const usuario = JSON.parse(localStorage.getItem('registroUsuario'));
     if (usuario && usuario.firstName) {
       setNombreAdmin(usuario.firstName);
     } else {
-      setNombreAdmin("Administrador");
+      setNombreAdmin('Administrador');
     }
   }, []);
 
-  // Cerrar sesión
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('registroUsuario');
-
-    //Redirigir al inicio
     navigate('/');
   };
 
   return (
     <nav className="sidebar">
-      {/* Logo */}
       <a href="#" className="sidebar-logo-link">
         <img src={logo} alt="Logo Tambo" className="sidebar-logo-img" />
       </a>
 
-      {/*Sección de bienvenida */}
       <div className="sidebar-welcome">
         <FaUserTie className="sidebar-admin-icon" />
         <div>
@@ -46,7 +47,6 @@ const Sidebar = ({ setVista, vista }) => {
 
       <hr />
 
-      {/* Navegación */}
       <ul className="nav flex-column mb-auto">
         <li>
           <a
@@ -76,10 +76,11 @@ const Sidebar = ({ setVista, vista }) => {
           </span>
         </li>
         <li>
+          {/* Pedidos: visible pero sin acción al hacer click */}
           <span
             className={`nav-link ${vista === 'pedidos' ? 'active' : ''}`}
-            onClick={() => setVista('pedidos')}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: 'default', color: 'gray' }}
+            onClick={(e) => e.preventDefault()}
           >
             <FaShoppingCart className="me-2" /> Pedidos
           </span>
@@ -88,7 +89,6 @@ const Sidebar = ({ setVista, vista }) => {
 
       <hr />
 
-      {/* Botón cerrar sesión */}
       <div className="mt-auto">
         <button className="btn btn-outline-danger w-100" onClick={handleLogout}>
           <FaSignOutAlt className="me-2" /> Cerrar sesión
