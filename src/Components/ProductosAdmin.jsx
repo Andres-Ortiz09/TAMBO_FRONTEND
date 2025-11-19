@@ -65,6 +65,7 @@ const ProductosAdmin = () => {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onloadend = () => {
+      // GUARDA LA IMAGEN COMPLETA: "data:image/png;base64,..."
       setForm({ ...form, image: reader.result });
       setErrors({ ...errors, image: '' });
     };
@@ -113,7 +114,8 @@ const ProductosAdmin = () => {
     try {
       await API.delete(`/products/${id}`);
       setMensajeExito('Producto eliminado correctamente');
-      cargarProductos();
+      cargarProducto
+s();
     } catch (error) {
       console.error('Error al eliminar producto:', error);
     }
@@ -181,9 +183,7 @@ const ProductosAdmin = () => {
               >
                 <option value="">Seleccione una categoría</option>
                 {categorias.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
+                  <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
               {errors.category && <div className="invalid-feedback">{errors.category}</div>}
@@ -255,9 +255,7 @@ const ProductosAdmin = () => {
                       <td>
                         {producto.image ? (
                           <img
-                            src={producto.image.startsWith('data:image')
-                              ? producto.image
-                              : `data:image/png;base64,${producto.image}`}
+                            src={producto.image}     // <<<<<< AQUI SE ARREGLA TODO
                             alt={producto.name}
                             style={{
                               width: 50,
