@@ -3,7 +3,6 @@ import {
   FaHome,
   FaUsers,
   FaBoxOpen,
-  FaShoppingCart,
   FaSignOutAlt,
   FaUserTie
 } from 'react-icons/fa';
@@ -57,6 +56,7 @@ const Sidebar = ({ setVista, vista }) => {
             <FaHome className="me-2" /> Dashboard
           </a>
         </li>
+
         <li>
           <span
             className={`nav-link ${vista === 'usuarios' ? 'active' : ''}`}
@@ -66,6 +66,7 @@ const Sidebar = ({ setVista, vista }) => {
             <FaUsers className="me-2" /> Usuarios
           </span>
         </li>
+
         <li>
           <span
             className={`nav-link ${vista === 'productos' ? 'active' : ''}`}
@@ -73,16 +74,6 @@ const Sidebar = ({ setVista, vista }) => {
             style={{ cursor: 'pointer' }}
           >
             <FaBoxOpen className="me-2" /> Productos
-          </span>
-        </li>
-        <li>
-          {/* Pedidos: visible pero sin acción al hacer click */}
-          <span
-            className={`nav-link ${vista === 'pedidos' ? 'active' : ''}`}
-            style={{ cursor: 'default', color: 'gray' }}
-            onClick={(e) => e.preventDefault()}
-          >
-            <FaShoppingCart className="me-2" /> Pedidos
           </span>
         </li>
       </ul>
@@ -99,3 +90,4 @@ const Sidebar = ({ setVista, vista }) => {
 };
 
 export default Sidebar;
+
