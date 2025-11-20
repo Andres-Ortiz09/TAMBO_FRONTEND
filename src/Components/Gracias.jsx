@@ -20,12 +20,13 @@ const Gracias = () => {
     const productos = JSON.parse(localStorage.getItem("carritoParaPago")) || [];
 
     let y = 80;
+    let total = 0; // Total acumulado de todos los productos
+
     if (productos.length > 0) {
       doc.setFontSize(14);
       doc.text("Resumen de productos:", 20, y);
       y += 10;
 
-      let total = 0;
       productos.forEach((producto, index) => {
         doc.setFontSize(12);
         doc.text(`${index + 1}. ${producto.name}`, 20, y);
@@ -34,15 +35,18 @@ const Gracias = () => {
         y += 8;
         doc.text(`   Cantidad: ${producto.cantidad}`, 20, y);
         y += 10;
+
         const subtotal = producto.price * producto.cantidad;
         doc.text(`   Subtotal: S/. ${subtotal.toFixed(2)}`, 20, y);
         y += 12;
 
-        total += subtotal;
+        total += subtotal; // Sumar subtotal al total
       });
 
+      // Mostrar el total al final
+      y += 5;
       doc.setFontSize(14);
-      doc.text(`Total a pagar: S/. ${total.toFixed(2)}`, 20, y + 10);
+      doc.text(`Total a pagar: S/. ${total.toFixed(2)}`, 20, y);
     } else {
       doc.text("No se encontraron productos en el pedido.", 20, y);
     }
@@ -66,4 +70,3 @@ const Gracias = () => {
 };
 
 export default Gracias;
-
