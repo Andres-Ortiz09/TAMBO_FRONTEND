@@ -1,0 +1,47 @@
+/* Gracias.css */
+
+.gracias-container {
+  text-align: center;
+  margin-top: 60px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+.gracias-container h2 {
+  color: #4caf50;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.gracias-container p {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.gracias-buttons {
+  margin-top: 30px;
+}
+
+.gracias-buttons button {
+  background-color: #6a0dad;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background-color 0.3s ease;
+  margin: 0 10px;
+}
+
+.gracias-buttons button:hover {
+  background-color: #9b4dca;
+}
+
+.gracias-buttons .btn-pdf {
+  background-color: #9b4dca;
+}
+
+.gracias-buttons .btn-pdf:hover {
+  background-color: #b57edc;
+}
