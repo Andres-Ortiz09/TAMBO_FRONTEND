@@ -1,125 +1,137 @@
 import React, { useState, useEffect } from 'react';
 import { FaBoxOpen, FaEdit, FaTrash } from 'react-icons/fa';
+import API from '../api';
 import './ProductosAdmin.css';
 
 const categorias = ['Bebidas', 'Comidas', 'Snacks', 'Licores'];
 
-const formatPrecio = (precio) => {
-  if (typeof precio === 'string' && precio.startsWith('S/.')) return precio;
-  return `S/.${precio}`;
-};
+const formatPrecio = (precio) => `S/.${precio}`;
 
 const ProductosAdmin = () => {
   const [productos, setProductos] = useState([]);
   const [form, setForm] = useState({
-    nombre: '',
-    precio: '',
+    name: '',
+    price: '',
     stock: '',
-    imagen: '',
-    categoria: ''
+    image: '',
+    category: '',
+    description: '',
   });
   const [editingId, setEditingId] = useState(null);
-  const [errors, setErrors] = useState({});
   const [mensajeExito, setMensajeExito] = useState('');
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    const guardados = JSON.parse(localStorage.getItem('productosTambo')) || [];
-    setProductos(guardados);
+    cargarProductos();
   }, []);
 
-  const handleChange = (e) => {
-    let value = e.target.value;
-    if (e.target.name === 'precio') {
-      value = value.replace(/^S\.\//, '').replace(/^S\./, '').replace(/^S/, '');
-      if (/^[0-9]*\.?[0-9]*$/.test(value) || value === '') {
-        setForm({ ...form, [e.target.name]: value });
-        setErrors({ ...errors, [e.target.name]: '' });
-      }
-    } else {
-      setForm({ ...form, [e.target.name]: value });
-      setErrors({ ...errors, [e.target.name]: '' });
+  const cargarProductos = async () => {
+    try {
+      const res = await API.get('/products');
+      console.log("Productos cargados:", res.data);
+      setProductos(res.data);
+    } catch (error) {
+      console.error('Error al cargar productos:', error);
     }
+  };
+
+  // Validaciones frontend
+  const validar = () => {
+    const newErrors = {};
+
+    if (!form.name.trim()) newErrors.name = 'El nombre es obligatorio';
+    else if (form.name.length > 100) newErrors.name = 'Máximo 100 caracteres';
+
+    if (!form.price) newErrors.price = 'El precio es obligatorio';
+    else if (isNaN(form.price) || Number(form.price) <= 0)
+      newErrors.price = 'Debe ser un número positivo';
+
+    if (form.stock === '') newErrors.stock = 'El stock es obligatorio';
+    else if (!Number.isInteger(Number(form.stock)) || Number(form.stock) < 0)
+      newErrors.stock = 'Debe ser un número entero positivo';
+
+    if (!form.category) newErrors.category = 'Seleccione una categoría';
+
+    if (!form.image) newErrors.image = 'La imagen es obligatoria';
+
+    if (!form.description.trim()) newErrors.description = 'La descripción es obligatoria';
+    else if (form.description.length > 255)
+      newErrors.description = 'Máximo 255 caracteres';
+
+    return newErrors;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // Bloquear negativos en campos numéricos
+    if (name === 'price' || name === 'stock') {
+      if (Number(value) < 0) return;
+    }
+
+    setForm({ ...form, [name]: value });
+    setErrors({ ...errors, [name]: '' });
   };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onloadend = () => {
-      setForm((prev) => ({ ...prev, imagen: reader.result }));
-      setErrors((prev) => ({ ...prev, imagen: '' }));
+      setForm({ ...form, image: reader.result });
+      setErrors({ ...errors, image: '' });
     };
     if (file) reader.readAsDataURL(file);
   };
 
-  const validar = () => {
-    const errores = {};
-    if (!form.nombre.trim()) errores.nombre = 'Nombre es requerido';
-    if (!form.precio.trim()) errores.precio = 'Precio es requerido';
-    else if (isNaN(Number(form.precio)) || Number(form.precio) <= 0)
-      errores.precio = 'Precio inválido';
-    if (!form.stock.trim()) errores.stock = 'Stock es requerido';
-    else if (!Number.isInteger(Number(form.stock)) || Number(form.stock) < 0)
-      errores.stock = 'Stock inválido';
-    if (!form.categoria) errores.categoria = 'Categoría es requerida';
-    if (!form.imagen) errores.imagen = 'Imagen es requerida';
-    return errores;
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const errores = validar();
-    if (Object.keys(errores).length > 0) {
-      setErrors(errores);
+    const valErrors = validar();
+    if (Object.keys(valErrors).length > 0) {
+      setErrors(valErrors);
       setMensajeExito('');
       return;
     }
 
-    const formData = { ...form, precio: form.precio.trim() };
+    try {
+      if (editingId) {
+        await API.put(`/products/${editingId}`, form);
+        setMensajeExito('Producto actualizado correctamente');
+      } else {
+        await API.post('/products', form);
+        setMensajeExito('Producto registrado correctamente');
+      }
 
-    if (editingId !== null) {
-      const nuevosProductos = productos.map((p, idx) =>
-        idx === editingId ? formData : p
-      );
-      setProductos(nuevosProductos);
-      localStorage.setItem('productosTambo', JSON.stringify(nuevosProductos));
+      setForm({
+        name: '',
+        price: '',
+        stock: '',
+        image: '',
+        category: '',
+        description: '',
+      });
       setEditingId(null);
-      setMensajeExito('Producto actualizado correctamente');
-    } else {
-      const nuevosProductos = [...productos, formData];
-      setProductos(nuevosProductos);
-      localStorage.setItem('productosTambo', JSON.stringify(nuevosProductos));
-      setMensajeExito('Producto registrado correctamente');
+      cargarProductos();
+    } catch (error) {
+      console.error('Error al guardar producto:', error);
     }
-
-    setForm({ nombre: '', precio: '', stock: '', imagen: '', categoria: '' });
-    setErrors({});
   };
 
-  const handleEdit = (idx) => {
-    setForm(productos[idx]);
-    setEditingId(idx);
-    setErrors({});
+  const handleEdit = (producto) => {
+    setForm(producto);
+    setEditingId(producto.id);
     setMensajeExito('');
   };
 
-  const handleDelete = (idx) => {
-    const confirmar = window.confirm(
-      '¿Estás seguro de que deseas eliminar este producto?'
-    );
-    if (!confirmar) return;
-
-    const nuevosProductos = productos.filter((_, i) => i !== idx);
-    setProductos(nuevosProductos);
-    localStorage.setItem('productosTambo', JSON.stringify(nuevosProductos));
-    setMensajeExito('Producto eliminado');
-
-    if (editingId === idx) {
-      setEditingId(null);
-      setForm({ nombre: '', precio: '', stock: '', imagen: '', categoria: '' });
-      setErrors({});
+  const handleDelete = async (id) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este producto?')) return;
+    try {
+      await API.delete(`/products/${id}`);
+      setMensajeExito('Producto eliminado correctamente');
+      cargarProductos();
+    } catch (error) {
+      console.error('Error al eliminar producto:', error);
     }
   };
-
   return (
     <>
       <div className="header d-flex justify-content-between align-items-center mb-4">
@@ -133,38 +145,35 @@ const ProductosAdmin = () => {
       </div>
 
       <div className="admin-container">
+        {/* FORMULARIO */}
         <div className="card">
           <div className="card-body">
-            <h5>{editingId !== null ? 'Editar Producto' : 'Registrar Producto'}</h5>
+            <h5>{editingId ? 'Editar Producto' : 'Registrar Producto'}</h5>
             <form onSubmit={handleSubmit} noValidate>
               <input
                 type="text"
-                name="nombre"
-                value={form.nombre}
+                name="name"
+                value={form.name}
                 onChange={handleChange}
                 placeholder="Nombre"
-                className={`form-control mb-2 ${errors.nombre ? 'is-invalid' : ''}`}
-                required
+                className={`form-control mb-2 ${errors.name ? 'is-invalid' : ''}`}
               />
-              {errors.nombre && (
-                <div className="invalid-feedback">{errors.nombre}</div>
-              )}
+              {errors.name && <div className="invalid-feedback">{errors.name}</div>}
 
               <div className="input-group mb-2">
                 <span className="input-group-text">S/.</span>
                 <input
-                  type="text"
-                  name="precio"
-                  value={form.precio}
+                  type="number"
+                  name="price"
+                  value={form.price}
                   onChange={handleChange}
                   placeholder="Precio"
-                  className={`form-control ${errors.precio ? 'is-invalid' : ''}`}
-                  required
+                  min="0"
+                  step="0.01"
+                  className={`form-control ${errors.price ? 'is-invalid' : ''}`}
                 />
               </div>
-              {errors.precio && (
-                <div className="invalid-feedback d-block">{errors.precio}</div>
-              )}
+              {errors.price && <div className="invalid-feedback d-block">{errors.price}</div>}
 
               <input
                 type="number"
@@ -172,19 +181,16 @@ const ProductosAdmin = () => {
                 value={form.stock}
                 onChange={handleChange}
                 placeholder="Stock"
+                min="0"
                 className={`form-control mb-2 ${errors.stock ? 'is-invalid' : ''}`}
-                required
               />
-              {errors.stock && (
-                <div className="invalid-feedback">{errors.stock}</div>
-              )}
+              {errors.stock && <div className="invalid-feedback">{errors.stock}</div>}
 
               <select
-                name="categoria"
-                value={form.categoria}
+                name="category"
+                value={form.category}
                 onChange={handleChange}
-                className={`form-control mb-2 ${errors.categoria ? 'is-invalid' : ''}`}
-                required
+                className={`form-control mb-2 ${errors.category ? 'is-invalid' : ''}`}
               >
                 <option value="">Seleccione una categoría</option>
                 {categorias.map((cat) => (
@@ -193,54 +199,48 @@ const ProductosAdmin = () => {
                   </option>
                 ))}
               </select>
-              {errors.categoria && (
-                <div className="invalid-feedback">{errors.categoria}</div>
-              )}
+              {errors.category && <div className="invalid-feedback">{errors.category}</div>}
+
+              <textarea
+                name="description"
+                value={form.description}
+                onChange={handleChange}
+                placeholder="Descripción"
+                maxLength="255"
+                className={`form-control mb-2 ${errors.description ? 'is-invalid' : ''}`}
+              />
+              {errors.description && <div className="invalid-feedback">{errors.description}</div>}
 
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className={`form-control mb-2 ${errors.imagen ? 'is-invalid' : ''}`}
-                required
+                className={`form-control mb-2 ${errors.image ? 'is-invalid' : ''}`}
               />
-              {errors.imagen && (
-                <div className="invalid-feedback d-block">{errors.imagen}</div>
-              )}
+              {errors.image && <div className="invalid-feedback d-block">{errors.image}</div>}
 
-              {form.imagen && (
+              {form.image && (
                 <img
-                  src={form.imagen}
+                  src={form.image}
                   alt="Previsualización"
                   style={{
                     width: 100,
                     height: 100,
                     objectFit: 'cover',
-                    marginBottom: '10px'
+                    marginBottom: '10px',
                   }}
                 />
               )}
 
-              <button
-                type="submit"
-                className="btn btn-primary me-2"
-                disabled={
-                  !form.nombre ||
-                  !form.precio ||
-                  !form.stock ||
-                  !form.categoria ||
-                  !form.imagen
-                }
-              >
-                {editingId !== null ? 'Actualizar' : 'Registrar'}
+              <button type="submit" className="btn btn-primary me-2">
+                {editingId ? 'Actualizar' : 'Registrar'}
               </button>
-              {mensajeExito && (
-                <span className="text-success ms-3">{mensajeExito}</span>
-              )}
+              {mensajeExito && <span className="text-success ms-3">{mensajeExito}</span>}
             </form>
           </div>
         </div>
 
+        {/* LISTA DE PRODUCTOS */}
         <div className="card mt-4">
           <div className="card-body">
             <h5>Lista de Productos</h5>
@@ -255,41 +255,43 @@ const ProductosAdmin = () => {
                     <th>Precio</th>
                     <th>Stock</th>
                     <th>Categoría</th>
+                    <th>Descripción</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {productos.map((producto, idx) => (
-                    <tr key={idx}>
+                  {productos.map((producto) => (
+                    <tr key={producto.id}>
                       <td>
-                        {producto.imagen ? (
+                        {producto.image ? (
                           <img
-                            src={producto.imagen}
-                            alt={producto.nombre}
+                            src={producto.image}
+                            alt={producto.name}
                             style={{
                               width: 50,
                               height: 50,
-                              objectFit: 'cover'
+                              objectFit: 'cover',
                             }}
                           />
                         ) : (
                           'Sin imagen'
                         )}
                       </td>
-                      <td>{producto.nombre}</td>
-                      <td>{formatPrecio(producto.precio)}</td>
+                      <td>{producto.name}</td>
+                      <td>{formatPrecio(producto.price)}</td>
                       <td>{producto.stock}</td>
-                      <td>{producto.categoria}</td>
+                      <td>{producto.category}</td>
+                      <td>{producto.description}</td>
                       <td>
                         <button
                           className="btn btn-warning btn-sm me-2"
-                          onClick={() => handleEdit(idx)}
+                          onClick={() => handleEdit(producto)}
                         >
                           <FaEdit /> Editar
                         </button>
                         <button
                           className="btn btn-danger btn-sm"
-                          onClick={() => handleDelete(idx)}
+                          onClick={() => handleDelete(producto.id)}
                         >
                           <FaTrash /> Eliminar
                         </button>
@@ -307,4 +309,3 @@ const ProductosAdmin = () => {
 };
 
 export default ProductosAdmin;
-

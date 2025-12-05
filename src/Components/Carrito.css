@@ -1,0 +1,109 @@
+.carrito-seccion {
+  background-color: #f8f0fc;
+  padding: 3rem 1rem;
+  border-top: 4px solid #6a1b9a;
+}
+
+.carrito-tabla-container {
+  margin: 0 auto;
+  max-width: 960px;
+  background-color: #fff;
+  border: 2px solid #6a1b9a;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.carrito-tabla-container h2 {
+  text-align: center;
+  color: #4a148c;
+  margin-bottom: 1.5rem;
+  font-size: 1.4rem;
+}
+
+.carrito-vacio {
+  text-align: center;
+  color: #777;
+  font-size: 1rem;
+}
+
+.carrito-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.carrito-tabla th,
+.carrito-tabla td {
+  padding: 0.8rem;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+}
+
+.carrito-tabla th {
+  background-color: #f3e5f5;
+  color: #6a1b9a;
+  font-weight: 600;
+}
+
+.cantidad-controles {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.cantidad-controles button {
+  background-color: #6a1b9a;
+  color: white;
+  border: none;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.btn-eliminar {
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.carrito-total {
+  text-align: right;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #6a1b9a;
+  margin-top: 1rem;
+}
+
+.carrito-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-volver,
+.btn-comprar {
+  background-color: #7b1fa2;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-volver:hover {
+  background-color: #6a1b9a;
+}
+
+.btn-comprar:hover {
+  background-color: #4a148c;
+}
