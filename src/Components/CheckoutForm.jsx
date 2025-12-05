@@ -143,13 +143,14 @@ const CheckoutForm = () => {
       <h2>Finalizar Compra</h2>
       <form className="checkout-form" onSubmit={handleSubmit}>
         <h3>Detalles de la entrega</h3>
-        <input
+        <textarea
           name="direccion"
           value={form.direccion}
           onChange={handleChange}
           placeholder="Dirección de entrega"
+          rows="3"
           required
-        />
+         />
 
         <h3>Información de pago</h3>
         <input
