@@ -105,7 +105,14 @@ function Registro() {
         <input type="password" name="confirmPassword" placeholder="Repetir contraseña" value={form.confirmPassword} onChange={handleChange} required />
         {errors.confirmPassword && <p className="error">{errors.confirmPassword}</p>}
 
-        <input type="text" name="address" placeholder="Dirección" value={form.address} onChange={handleChange} required />
+        <textarea
+         name="address"
+         placeholder="Dirección"
+         value={form.address}
+         onChange={handleChange}
+         rows="3"
+         required
+         ></textarea>
         {errors.address && <p className="error">{errors.address}</p>}
 
         <input type="tel" name="phone" placeholder="Teléfono" value={form.phone} onChange={handleChange} maxLength="9" inputMode="numeric" required />
