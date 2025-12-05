@@ -160,6 +160,7 @@ function Registro() {
           onChange={handleChange}
           rows="3"
           required
+          className="brand-input"
         ></textarea>
         {errors.address && <p className="error">{errors.address}</p>}
 
