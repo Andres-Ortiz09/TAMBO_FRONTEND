@@ -20,7 +20,6 @@ const UsuarioAdmin = () => {
   const [errors, setErrors] = useState({});
   const token = localStorage.getItem("token");
 
-  // Cargar usuarios desde el backend
   useEffect(() => {
     if (token) fetchUsers();
   }, [token]);
@@ -34,7 +33,6 @@ const UsuarioAdmin = () => {
     }
   };
 
-  // Validaciones
   const validar = () => {
     const err = {};
     if (!form.firstName.trim()) err.firstName = "El nombre es obligatorio";
@@ -66,7 +64,6 @@ const UsuarioAdmin = () => {
     return err;
   };
 
-  // Crear o actualizar usuario
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validar();
@@ -102,7 +99,6 @@ const UsuarioAdmin = () => {
     }
   };
 
-  // Editar usuario
   const handleEdit = (user) => {
     setForm({ ...user, repeatPassword: user.password });
     setEditingId(user.id);
@@ -110,7 +106,6 @@ const UsuarioAdmin = () => {
     setErrors({});
   };
 
-  // Eliminar usuario
   const handleDelete = async (id) => {
     if (window.confirm("¿Seguro que deseas eliminar este usuario?")) {
       try {
@@ -123,7 +118,6 @@ const UsuarioAdmin = () => {
     }
   };
 
-  // Manejo de cambios con validaciones en tiempo real
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -160,6 +154,7 @@ const UsuarioAdmin = () => {
       <div className="card shadow-sm">
         <div className="card-body">
           <h5>{editingId ? "Editar Usuario" : "Registrar Usuario"}</h5>
+
           <form onSubmit={handleSubmit} noValidate>
             <div className="row">
               <div className="col-md-6 mb-3">
@@ -170,7 +165,6 @@ const UsuarioAdmin = () => {
                   onChange={handleChange}
                   placeholder="Nombre"
                   className={`form-control ${errors.firstName ? "is-invalid" : ""}`}
-                  required
                 />
                 {errors.firstName && (
                   <div className="invalid-feedback">{errors.firstName}</div>
@@ -185,7 +179,6 @@ const UsuarioAdmin = () => {
                   onChange={handleChange}
                   placeholder="Apellido"
                   className={`form-control ${errors.lastName ? "is-invalid" : ""}`}
-                  required
                 />
                 {errors.lastName && (
                   <div className="invalid-feedback">{errors.lastName}</div>
@@ -193,7 +186,7 @@ const UsuarioAdmin = () => {
               </div>
             </div>
 
-            {/* Fila correo y teléfono */}
+            {/* Email y Teléfono */}
             <div className="row">
               <div className="col-md-6 mb-3">
                 <input
@@ -203,7 +196,6 @@ const UsuarioAdmin = () => {
                   onChange={handleChange}
                   placeholder="Correo electrónico"
                   className={`form-control ${errors.email ? "is-invalid" : ""}`}
-                  required
                 />
                 {errors.email && (
                   <div className="invalid-feedback">{errors.email}</div>
@@ -219,7 +211,6 @@ const UsuarioAdmin = () => {
                   placeholder="Teléfono"
                   maxLength="9"
                   className={`form-control ${errors.phone ? "is-invalid" : ""}`}
-                  required
                 />
                 {errors.phone && (
                   <div className="invalid-feedback">{errors.phone}</div>
@@ -227,7 +218,7 @@ const UsuarioAdmin = () => {
               </div>
             </div>
 
-            {/* Fila contraseña y repetir */}
+            {/* Contraseña y repetir */}
             <div className="row">
               <div className="col-md-6 mb-3">
                 <input
@@ -237,7 +228,6 @@ const UsuarioAdmin = () => {
                   onChange={handleChange}
                   placeholder="Contraseña"
                   className={`form-control ${errors.password ? "is-invalid" : ""}`}
-                  required
                 />
                 {errors.password && (
                   <div className="invalid-feedback">{errors.password}</div>
@@ -252,7 +242,6 @@ const UsuarioAdmin = () => {
                   onChange={handleChange}
                   placeholder="Repetir Contraseña"
                   className={`form-control ${errors.repeatPassword ? "is-invalid" : ""}`}
-                  required
                 />
                 {errors.repeatPassword && (
                   <div className="invalid-feedback">{errors.repeatPassword}</div>
@@ -260,33 +249,29 @@ const UsuarioAdmin = () => {
               </div>
             </div>
 
-            {/* Dirección */}
+            {/* Dirección convertida en TEXTAREA */}
             <div className="mb-3">
-              <input
-                type="text"
+              <textarea
                 name="address"
                 value={form.address}
                 onChange={handleChange}
                 placeholder="Dirección"
-                className={`form-control ${errors.address ? "is-invalid" : ""}`}
-                required
-              />
+                className={`form-control textarea-input ${errors.address ? "is-invalid" : ""}`}
+                rows="2"
+              ></textarea>
               {errors.address && (
                 <div className="invalid-feedback">{errors.address}</div>
               )}
             </div>
 
             <button type="submit" className="btn btn-primary me-2">
-              {editingId ? "Actualizar" : (
-                <>
-                  <FaPlus className="me-1" /> Agregar Usuario
-                </>
-              )}
+              {editingId ? "Actualizar" : <>
+                <FaPlus className="me-1" /> Agregar Usuario
+              </>}
             </button>
+
             {mensajeExito && (
-              <span className="text-success fw-semibold ms-3">
-                {mensajeExito}
-              </span>
+              <span className="text-success fw-semibold ms-3">{mensajeExito}</span>
             )}
           </form>
         </div>
@@ -295,6 +280,7 @@ const UsuarioAdmin = () => {
       <div className="card shadow-sm table-container mt-4">
         <div className="card-body">
           <h5>Lista de Usuarios</h5>
+
           {usuarios.length === 0 ? (
             <p>No hay usuarios registrados.</p>
           ) : (
@@ -309,6 +295,7 @@ const UsuarioAdmin = () => {
                   <th>Acciones</th>
                 </tr>
               </thead>
+
               <tbody>
                 {usuarios.map((usuario) => (
                   <tr key={usuario.id}>
@@ -317,6 +304,7 @@ const UsuarioAdmin = () => {
                     <td>{usuario.email}</td>
                     <td>{usuario.address}</td>
                     <td>{usuario.phone}</td>
+
                     <td>
                       <button
                         className="btn btn-sm btn-warning me-2"
@@ -324,6 +312,7 @@ const UsuarioAdmin = () => {
                       >
                         <FaEdit />
                       </button>
+
                       <button
                         className="btn btn-sm btn-danger"
                         onClick={() => handleDelete(usuario.id)}
@@ -331,9 +320,11 @@ const UsuarioAdmin = () => {
                         <FaTrash />
                       </button>
                     </td>
+
                   </tr>
                 ))}
               </tbody>
+
             </table>
           )}
         </div>
