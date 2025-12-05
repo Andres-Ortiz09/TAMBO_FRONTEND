@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import "./Registro.css";
 import { useNavigate } from 'react-router-dom';
-import { register } from '../api';
+import { register, login } from '../api';
 import logo from '../assets/img/logo-tambo2.png';
 
 function Registro() {
@@ -21,7 +21,6 @@ function Registro() {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Validaciones por campo en tiempo real
     if (name === 'firstName' || name === 'lastName') {
       const soloLetras = value.replace(/[^A-Za-zÁÉÍÓÚáéíóúñÑ\s]/g, '');
       setForm({ ...form, [name]: soloLetras });
@@ -32,7 +31,7 @@ function Registro() {
       setForm({ ...form, [name]: value });
     }
 
-    setErrors({ ...errors, [name]: '' }); // limpiar error al escribir
+    setErrors({ ...errors, [name]: '' });
   };
 
   const validateForm = () => {
@@ -69,6 +68,7 @@ function Registro() {
     if (Object.keys(validationErrors).length > 0) return;
 
     try {
+      // 1. Registrar usuario
       await register({
         firstName: form.firstName,
         lastName: form.lastName,
@@ -77,8 +77,20 @@ function Registro() {
         address: form.address,
         phone: form.phone
       });
-      alert('Usuario registrado con éxito');
-      navigate('/login');
+
+      // 2. Login automático usando tus mismas funciones
+      const data = await login(form.email, form.password);
+
+      // 3. Guardar sesión igual que en Login.jsx
+      localStorage.setItem('token', data.accessToken);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      // 4. Redirección según tipo de usuario
+      if (form.email.toLowerCase().endsWith('@tambo.com'))
+        navigate('/panel');
+      else
+        navigate('/');
+
     } catch (err) {
       setErrors({ submit: err.response?.data?.message || err.message || 'Error al registrar usuario' });
     }
@@ -87,35 +99,80 @@ function Registro() {
   return (
     <div className="registro-container">
       <div className="registro-imagen"><img src={logo} alt="Logo Tambo" /></div>
+
       <form className="registro-formulario" onSubmit={handleSubmit}>
         <h2>Registro</h2>
 
-        <input type="text" name="firstName" placeholder="Nombre" value={form.firstName} onChange={handleChange} required />
+        <input 
+          type="text" 
+          name="firstName" 
+          placeholder="Nombre" 
+          value={form.firstName} 
+          onChange={handleChange} 
+          required 
+        />
         {errors.firstName && <p className="error">{errors.firstName}</p>}
 
-        <input type="text" name="lastName" placeholder="Apellido" value={form.lastName} onChange={handleChange} required />
+        <input 
+          type="text" 
+          name="lastName" 
+          placeholder="Apellido" 
+          value={form.lastName} 
+          onChange={handleChange} 
+          required 
+        />
         {errors.lastName && <p className="error">{errors.lastName}</p>}
 
-        <input type="email" name="email" placeholder="Correo electrónico" value={form.email} onChange={handleChange} required />
+        <input 
+          type="email" 
+          name="email" 
+          placeholder="Correo electrónico" 
+          value={form.email} 
+          onChange={handleChange} 
+          required 
+        />
         {errors.email && <p className="error">{errors.email}</p>}
 
-        <input type="password" name="password" placeholder="Contraseña" value={form.password} onChange={handleChange} required />
+        <input 
+          type="password" 
+          name="password" 
+          placeholder="Contraseña" 
+          value={form.password} 
+          onChange={handleChange} 
+          required 
+        />
         {errors.password && <p className="error">{errors.password}</p>}
 
-        <input type="password" name="confirmPassword" placeholder="Repetir contraseña" value={form.confirmPassword} onChange={handleChange} required />
+        <input 
+          type="password" 
+          name="confirmPassword" 
+          placeholder="Repetir contraseña" 
+          value={form.confirmPassword} 
+          onChange={handleChange} 
+          required 
+        />
         {errors.confirmPassword && <p className="error">{errors.confirmPassword}</p>}
 
         <textarea
-         name="address"
-         placeholder="Dirección"
-         value={form.address}
-         onChange={handleChange}
-         rows="3"
-         required
-         ></textarea>
+          name="address"
+          placeholder="Dirección"
+          value={form.address}
+          onChange={handleChange}
+          rows="3"
+          required
+        ></textarea>
         {errors.address && <p className="error">{errors.address}</p>}
 
-        <input type="tel" name="phone" placeholder="Teléfono" value={form.phone} onChange={handleChange} maxLength="9" inputMode="numeric" required />
+        <input 
+          type="tel" 
+          name="phone" 
+          placeholder="Teléfono" 
+          value={form.phone} 
+          onChange={handleChange} 
+          maxLength="9" 
+          inputMode="numeric" 
+          required 
+        />
         {errors.phone && <p className="error">{errors.phone}</p>}
 
         {errors.submit && <p className="error">{errors.submit}</p>}
