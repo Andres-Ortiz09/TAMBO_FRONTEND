@@ -35,3 +35,16 @@
 .btn-primary {
   margin-right: 0.5rem;
 }
+
+/* --- Estilo textarea igual al input --- */
+.textarea-input {
+  resize: none;  
+  height: 38px;                /* altura igual al input */
+  padding: 6px 12px;
+  line-height: 1.5;
+}
+
+.textarea-input:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 .25rem rgba(13,110,253,.25);
+}

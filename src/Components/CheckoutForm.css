@@ -87,3 +87,23 @@
   font-weight: 600;
   color: #6a0dad;
 }
+.checkout-form textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 14px;
+  border: 1px solid #d1b3ff;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: #ffffff;
+  color: #333;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  font-family: inherit; /* para que use la misma fuente */
+  box-sizing: border-box; /* para que padding no aumente ancho */
+}
+
+.checkout-form textarea:focus {
+  border-color: #6a0dad;
+  box-shadow: 0 0 6px rgba(106, 13, 173, 0.4);
+  outline: none;
+  background-color: #ffffff;
+}

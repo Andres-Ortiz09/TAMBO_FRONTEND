@@ -98,12 +98,14 @@ const CheckoutForm = () => {
         estado: "Pendiente",
       };
 
-      await axios.post("https://tambo-backend.onrender.com/api/pedidos", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axios.post(
+        "https://tambo-backend.onrender.com/api/pedidos",
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-      localStorage.removeItem("carritoParaPago");
-      setCarrito([]);
       setForm({
         nombre: "",
         direccion: "",
@@ -141,13 +143,14 @@ const CheckoutForm = () => {
       <h2>Finalizar Compra</h2>
       <form className="checkout-form" onSubmit={handleSubmit}>
         <h3>Detalles de la entrega</h3>
-        <input
+        <textarea
           name="direccion"
           value={form.direccion}
           onChange={handleChange}
           placeholder="Dirección de entrega"
+          rows="3"
           required
-        />
+         />
 
         <h3>Información de pago</h3>
         <input
@@ -196,3 +199,4 @@ const CheckoutForm = () => {
 };
 
 export default CheckoutForm;
+

@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import jsPDF from "jspdf";
+import "./Gracias.css";
 
 const Gracias = () => {
   const navigate = useNavigate();
@@ -12,47 +13,55 @@ const Gracias = () => {
     doc.text("Comprobante de Pedido", 20, 20);
 
     doc.setFontSize(12);
-    doc.text("Gracias por tu compra 🎉", 20, 40);
+    doc.text("Gracias por tu compra", 20, 40);
     doc.text("Tu pedido ha sido registrado correctamente.", 20, 50);
+    doc.text("Fecha: " + new Date().toLocaleDateString(), 20, 60);
 
-    // Aquí puedes añadir más detalles del pedido si los guardas en localStorage
-    doc.text("Fecha: " + new Date().toLocaleDateString(), 20, 70);
+    const productos = JSON.parse(localStorage.getItem("carritoParaPago")) || [];
+
+    let y = 80;
+    let total = 0; // Total acumulado de todos los productos
+
+    if (productos.length > 0) {
+      doc.setFontSize(14);
+      doc.text("Resumen de productos:", 20, y);
+      y += 10;
+
+      productos.forEach((producto, index) => {
+        doc.setFontSize(12);
+        doc.text(`${index + 1}. ${producto.name}`, 20, y);
+        y += 8;
+        doc.text(`   Precio unitario: S/. ${producto.price.toFixed(2)}`, 20, y);
+        y += 8;
+        doc.text(`   Cantidad: ${producto.cantidad}`, 20, y);
+        y += 10;
+
+        const subtotal = producto.price * producto.cantidad;
+        doc.text(`   Subtotal: S/. ${subtotal.toFixed(2)}`, 20, y);
+        y += 12;
+
+        total += subtotal; // Sumar subtotal al total
+      });
+
+      // Mostrar el total al final
+      y += 5;
+      doc.setFontSize(14);
+      doc.text(`Total a pagar: S/. ${total.toFixed(2)}`, 20, y);
+    } else {
+      doc.text("No se encontraron productos en el pedido.", 20, y);
+    }
 
     doc.save("comprobante-pedido.pdf");
   };
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
+    <div className="gracias-container">
       <h2>✅ ¡Gracias por tu compra!</h2>
       <p>Tu pedido ha sido registrado correctamente.</p>
 
-      <div style={{ marginTop: "20px" }}>
-        <button
-          onClick={() => navigate("/")}
-          style={{
-            backgroundColor: "#6a0dad",
-            color: "white",
-            border: "none",
-            padding: "12px 20px",
-            borderRadius: "8px",
-            marginRight: "10px",
-            cursor: "pointer"
-          }}
-        >
-          Volver al inicio
-        </button>
-
-        <button
-          onClick={descargarPDF}
-          style={{
-            backgroundColor: "#9b4dca",
-            color: "white",
-            border: "none",
-            padding: "12px 20px",
-            borderRadius: "8px",
-            cursor: "pointer"
-          }}
-        >
+      <div className="gracias-buttons">
+        <button onClick={() => navigate("/")}>Volver al inicio</button>
+        <button className="btn-pdf" onClick={descargarPDF}>
           Descargar PDF
         </button>
       </div>
